@@ -14,7 +14,7 @@ def create_app(config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='secret-key-here',
-        SQLALCHEMY_DATABASE_URI='mysql://root:password@localhost/moxart',
+        SQLALCHEMY_DATABASE_URI='mysql://moxart:password@localhost/moxart',
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         JWT_SECRET_KEY='jwt-secret-key-here',
     )
