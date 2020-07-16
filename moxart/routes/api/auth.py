@@ -3,6 +3,7 @@ import uuid
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from moxart import db
 from moxart.models.user import User
 
 bp = Blueprint('auth', __name__, url_prefix='/api')
@@ -23,7 +24,15 @@ def add_user():
     if request.method == 'POST':
         data = request.get_json()
 
-        new_user = User(public_id=str(uuid.uuid4()))
+        hashed_password = generate_password_hash(data['password'], method='sha256')
+
+        new_user = User(username=data['username'],
+                        email=data['email'], password=hashed_password, admin=False)
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({"msg": "user has been successfully created!"})
 
 
 @bp.route('/user/<id>', methods=['PUT'])
