@@ -1,6 +1,9 @@
 ### Venv ###
 venv
 
+### Migrations ###
+migrations
+
 ### Flask ###
 instance/*
 !instance/.gitignore

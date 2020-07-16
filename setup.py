@@ -2,7 +2,7 @@ import click
 from datetime import datetime
 
 from moxart import create_app, db
-from moxart.models import User
+from moxart.models.user import User
 
 app = create_app()
 app.app_context().push()
@@ -11,6 +11,7 @@ app.app_context().push()
 @click.group()
 def cli():
     pass
+
 
 # Initializing Database
 @click.command()
@@ -23,7 +24,7 @@ def init_db():
 @click.command()
 def init_admin():
     if db.session.query(User.username).filter_by(
-        username=app.config['ADMIN_USERNAME']
+            username=app.config['ADMIN_USERNAME']
     ).scalar() is None:
         admin = User(
             username=app.config['ADMIN_USERNAME'],
@@ -35,9 +36,9 @@ def init_admin():
         db.session.add(admin)
         db.session.commit()
         click.echo('[ Initialized The Admin User ]')
-        breakpoint
     else:
         click.echo('[ User Admin is Already Exists ]')
+
 
 # Initializing a User
 @click.command()
@@ -49,17 +50,18 @@ def init_admin():
 @click.option('--confirmed/--un-confirmed', default=False)
 def init_user(username, email, password, admin, confirmed):
     if db.session.query(User.username).filter_by(
-        username=username
+            username=username
     ).scalar() is None:
         user = User(
             username=username, email=email, password=password, admin=admin,
-            confirmed=True if confirmed else False, confirmed_at=datetime.utcnow() if confirmed else False
+            confirmed=True if confirmed else False, confirmed_at=datetime.utcnow() if confirmed else None
         )
         db.session.add(user)
         db.session.commit()
-        click.echo('[ {} user intialized ]'.format(username))
+        click.echo('[ {} user has been created successfully ]'.format(username))
     else:
         click.echo('[ The {} has already been taken ]'.format(username))
+
 
 # Drop User from Dashboard
 @click.command()
@@ -72,10 +74,9 @@ def drop_user(username):
             ).delete()
             db.session.commit()
             click.echo(
-                '[ {} user has been deleted from dashboard ]'.format(username))
-            breakpoint
+                '[ {} user has been removed successfully from dashboard ]'.format(username))
         else:
-            click.echo('[ {} user doesn\'t exist ]'.format(username))
+            click.echo('[ {} user does\'nt exist ]'.format(username))
     else:
         click.echo('[ You can\'t delete an Admin user ]')
 
@@ -84,7 +85,6 @@ cli.add_command(init_db)
 cli.add_command(init_admin)
 cli.add_command(init_user)
 cli.add_command(drop_user)
-
 
 if __name__ == '__main__':
     cli()

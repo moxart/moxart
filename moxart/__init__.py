@@ -35,13 +35,13 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     with app.app_context():
-        # Include Our Routes
-        from . import routes
+        # Include Our API Routes
+        from .routes.api import auth
 
         # Register Blueprints
-        app.register_blueprint(routes.bp)
+        app.register_blueprint(auth.bp)
 
         # Include Our Models
-        from . import models
+        from .models import user
 
     return app
