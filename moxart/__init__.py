@@ -17,6 +17,7 @@ def create_app(config=None):
         SQLALCHEMY_DATABASE_URI='mysql://moxart:password@localhost/moxart',
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         JWT_SECRET_KEY='jwt-secret-key-here',
+        JSON_SORT_KEYS=False
     )
 
     if config is None:
