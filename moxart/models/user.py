@@ -1,6 +1,7 @@
 import uuid
 
 from werkzeug.security import generate_password_hash
+from marshmallow import Schema, fields
 from moxart import db
 from datetime import datetime
 
@@ -33,3 +34,17 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+
+class UserSchema(Schema):
+    public_id = fields.Str()
+    username = fields.Str()
+    first_name = fields.Str()
+    last_name = fields.Str()
+    email = fields.Email()
+    password = fields.Str()
+    bio = fields.Str()
+    admin = fields.Boolean()
+    registered_at = fields.DateTime()
+    confirmed = fields.Boolean()
+    confirmed_at = fields.DateTime()

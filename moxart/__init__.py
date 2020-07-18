@@ -37,10 +37,12 @@ def create_app(config=None):
 
     with app.app_context():
         # Include Our API Routes
-        from .routes.api import auth
+        from .routes import auth
+        from .routes.api import user
 
         # Register Blueprints
         app.register_blueprint(auth.bp)
+        app.register_blueprint(user.bp)
 
         # Include Our Models
         from .models import user
