@@ -7,23 +7,25 @@ from datetime import datetime
 
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    public_id = db.Column(db.String(50), unique=True, nullable=False)
+    id = db.Column(db.String(50), primary_key=True, unique=True, nullable=False, default=uuid.uuid4())
+    user_public_id = db.Column(db.String(50), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, index=True, nullable=False)
-    first_name = db.Column(db.String(50), nullable=True)
-    last_name = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(255), index=True, unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    bio = db.Column(db.Text)
     admin = db.Column(db.Boolean, nullable=False, default=False)
     registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     confirmed = db.Column(db.Boolean, nullable=False, default=False)
     confirmed_at = db.Column(db.DateTime, default=None)
 
+    # RELATIONSHIPS #
+    post = db.relationship('Post', backref='user', lazy=True)
+    profile = db.relationship('Profile', backref='profile', uselist=False)
+    # # RELATIONSHIPS END #
+
     def __init__(self,
-                 public_id, username, email, password, confirmed=False,
+                 user_public_id, username, email, password, confirmed=False,
                  admin=False, confirmed_at=None):
-        self.public_id = public_id
+        self.user_public_id = user_public_id
         self.username = username
         self.email = email
         self.password = generate_password_hash(password, 'sha256')
@@ -37,13 +39,10 @@ class User(db.Model):
 
 
 class UserSchema(Schema):
-    public_id = fields.Str()
+    user_public_id = fields.Str()
     username = fields.Str()
-    first_name = fields.Str()
-    last_name = fields.Str()
     email = fields.Email()
     password = fields.Str()
-    bio = fields.Str()
     admin = fields.Boolean()
     registered_at = fields.DateTime()
     confirmed = fields.Boolean()

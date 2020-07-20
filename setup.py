@@ -1,4 +1,5 @@
 import click
+import uuid
 from datetime import datetime
 
 from moxart import create_app, db
@@ -28,6 +29,7 @@ def init_admin():
     ).scalar() is None:
         admin = User(
             username=app.config['ADMIN_USERNAME'],
+            user_public_id=uuid.uuid4(),
             email=app.config['ADMIN_EMAIL'],
             password=app.config['ADMIN_PASSWORD'],
             confirmed=True, confirmed_at=datetime.utcnow(),
@@ -53,7 +55,7 @@ def init_user(username, email, password, admin, confirmed):
             username=username
     ).scalar() is None:
         user = User(
-            username=username, email=email, password=password, admin=admin,
+            username=username, user_public_id=uuid.uuid4(), email=email, password=password, admin=admin,
             confirmed=True if confirmed else False, confirmed_at=datetime.utcnow() if confirmed else None
         )
         db.session.add(user)

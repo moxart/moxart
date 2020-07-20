@@ -38,13 +38,16 @@ def create_app(config=None):
     with app.app_context():
         # Include Our API Routes
         from .routes import auth
-        from .routes.api import user
+        from .routes.api import user, post
 
         # Register Blueprints
         app.register_blueprint(auth.bp)
         app.register_blueprint(user.bp)
+        app.register_blueprint(post.bp)
 
         # Include Our Models
         from .models import user
+        from .models import post
+        from .models import profile
 
     return app
