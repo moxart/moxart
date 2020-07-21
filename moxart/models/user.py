@@ -7,6 +7,8 @@ from datetime import datetime
 
 
 class User(db.Model):
+    __tablename__ = 'user'
+
     id = db.Column(db.String(50), primary_key=True, unique=True, nullable=False, default=uuid.uuid4())
     user_public_id = db.Column(db.String(50), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, index=True, nullable=False)

@@ -1,15 +1,17 @@
 import uuid
 
-from flask import Blueprint, request, jsonify
+from flask import current_app, Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy import or_
 from flask_jwt_extended import (
     JWTManager, jwt_required, get_jwt_identity,
     create_access_token, create_refresh_token,
     jwt_refresh_token_required, get_raw_jwt
 )
+from flask_mail import Message
 
-from moxart import db, jwt
+from moxart import db, jwt, mail
 from moxart.models.user import User
 
 bp = Blueprint('auth', __name__)
@@ -46,7 +48,7 @@ def signup_user():
 
     hashed_password = generate_password_hash(password, method='sha256')
 
-    new_user = User(public_id=uuid.uuid4(), username=username, email=email,
+    new_user = User(user_public_id=uuid.uuid4(), username=username, email=email,
                     password=hashed_password, admin=False)
 
     db.session.add(new_user)
@@ -83,6 +85,9 @@ def login_user():
 
     access_token = create_access_token(identity=username, expires_delta=False)
     refresh_token = create_refresh_token(identity=username)
+
+    confirm_serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    token = confirm_serializer.dumps(user.email, salt='email-confirmation-salt')
 
     return jsonify(access_token=access_token, refresh_token=refresh_token), 200
 

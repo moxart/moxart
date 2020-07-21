@@ -4,10 +4,12 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from flask_mail import Mail
 
 db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
+mail = Mail()
 
 
 def create_app(config=None):
@@ -34,20 +36,23 @@ def create_app(config=None):
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
 
     with app.app_context():
         # Include Our API Routes
         from .routes import auth
-        from .routes.api import user, post
+        from .routes.api import user, post, category
 
         # Register Blueprints
         app.register_blueprint(auth.bp)
         app.register_blueprint(user.bp)
         app.register_blueprint(post.bp)
+        app.register_blueprint(category.bp)
 
         # Include Our Models
         from .models import user
         from .models import post
         from .models import profile
+        from .models import category
 
     return app

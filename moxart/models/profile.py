@@ -6,6 +6,8 @@ from datetime import datetime
 
 
 class Profile(db.Model):
+    __tablename__ = 'profile'
+
     id = db.Column(db.String(50), primary_key=True, unique=True, nullable=False, default=uuid.uuid4())
     user_public_id = db.Column(db.String(50), db.ForeignKey('user.user_public_id'))
     first_name = db.Column(db.String(50), nullable=True)

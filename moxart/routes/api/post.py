@@ -18,15 +18,17 @@ def new_post():
     data = request.get_json()
 
     user_public_id = data.get('user_public_id', None)
+    category_public_id = data.get('category_public_id', None)
     title = data.get('title', None)
     content = data.get('content', None)
 
-    if user_public_id is None or title is None or content is None:
+    if user_public_id is None or category_public_id is None or title is None or content is None:
         return jsonify({
             "msg": "some arguments missing"
         }), 400
 
-    post = Post(user_public_id=user_public_id, title=title, content=content)
+    post = Post(user_public_id=user_public_id, category_public_id=category_public_id,
+                title=title, content=content)
 
     db.session.add(post)
     db.session.commit()
