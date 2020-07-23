@@ -1,6 +1,7 @@
 import click
 import uuid
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 from moxart import create_app, db
 from moxart.models.user import User
@@ -31,7 +32,7 @@ def init_admin():
             username=app.config['ADMIN_USERNAME'],
             user_public_id=uuid.uuid4(),
             email=app.config['ADMIN_EMAIL'],
-            password=app.config['ADMIN_PASSWORD'],
+            password=generate_password_hash(app.config['ADMIN_PASSWORD'], method='sha256'),
             confirmed=True, confirmed_at=datetime.utcnow(),
             admin=True
         )

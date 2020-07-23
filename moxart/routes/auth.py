@@ -34,62 +34,48 @@ def signup_user():
     password = data.get('password', None)
 
     if username is None or email is None or password is None:
-        return jsonify({
-            "msg": "some arguments missing"
-        }), 400
+        return jsonify(status=400, msg="some arguments missing"), 400
 
     if db.session.query(User).filter(or_(
             User.username == username, User.email == email
     )).first():
-        return jsonify({
-            "msg": "the user already exists, "
-                   "please choose an another username or email address".format(username)
-        }), 400
+        return jsonify(status=400, msg="the user already exists"), 400
 
     hashed_password = generate_password_hash(password, method='sha256')
 
-    new_user = User(user_public_id=uuid.uuid4(), username=username, email=email,
-                    password=hashed_password, admin=False)
+    user = User(user_public_id=uuid.uuid4(), username=username, email=email,
+                password=hashed_password, admin=False)
 
-    db.session.add(new_user)
+    db.session.add(user)
     db.session.commit()
 
     access_token = create_access_token(identity=username, expires_delta=False)
     refresh_token = create_refresh_token(identity=username)
 
-    return jsonify({
-        "status": "success",
-        "msg": "the user {} has been successfully created".format(username),
-        "access_token": access_token,
-        "refresh_token": refresh_token
-    }), 201
+    return jsonify(status=201, message="the user has been successfully created",
+                   access_token=access_token, refresh_token=refresh_token), 201
 
 
 @bp.route('/login', methods=['POST'])
 def login_user():
     if not request.is_json:
-        return jsonify({"msg": "request is not json"}), 400
+        return jsonify(msg="request is not json"), 400
 
     data = request.get_json()
 
     username = data.get('username', None)
     password = data.get('password', None)
 
-    if username is None or password is None:
-        return jsonify({"msg": "some arguments missing"}), 400
-
     user = User.query.filter_by(username=username).first()
 
-    if user is None or not check_password_hash(user.password, password):
-        return jsonify({"msg": "bad username or password"}), 400
+    if not username or not password or not user or not check_password_hash(user.password, password):
+        return jsonify(status=400, msg="user authentication required"), 400
 
     access_token = create_access_token(identity=username, expires_delta=False)
     refresh_token = create_refresh_token(identity=username)
 
-    confirm_serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    token = confirm_serializer.dumps(user.email, salt='email-confirmation-salt')
-
-    return jsonify(access_token=access_token, refresh_token=refresh_token), 200
+    return jsonify(status=200, msg="user has been authenticated successfully",
+                   access_token=access_token, refresh_token=refresh_token), 200
 
 
 @bp.route('/token/refresh', methods=['POST'])
@@ -98,12 +84,8 @@ def token_refresh():
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
 
-    return jsonify({
-        "status": "success",
-        "refresh": True,
-        "access_token": access_token,
-        "msg": "the refresh token has been successfully refreshed"
-    })
+    return jsonify(status=200, refresh=True, access_token=access_token,
+                   msg="the refresh token has been successfully refreshed"), 200
 
 
 @bp.route('/logout', methods=['DELETE'])
@@ -112,8 +94,4 @@ def logout_user():
     jti = get_raw_jwt()['jti']
     blacklist.add(jti)
 
-    return jsonify({
-        "status": "success",
-        "logout": True,
-        "msg": "successfully logged out"
-    }), 200
+    return jsonify(status=200, logout=True, msg="user has been successfully logged out"), 200

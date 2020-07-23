@@ -30,7 +30,7 @@ class User(db.Model):
         self.user_public_id = user_public_id
         self.username = username
         self.email = email
-        self.password = generate_password_hash(password, 'sha256')
+        self.password = password
         self.registered_at = datetime.utcnow()
         self.admin = admin
         self.confirmed = confirmed
