@@ -10,7 +10,7 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id = db.Column(db.String(50), primary_key=True, unique=True, nullable=False, default=uuid.uuid4())
-    user_public_id = db.Column(db.String(50), unique=True, nullable=False)
+    user_public_id = db.Column(db.String(50), unique=True, nullable=False, default=uuid.uuid4())
     username = db.Column(db.String(50), unique=True, index=True, nullable=False)
     email = db.Column(db.String(255), index=True, unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
@@ -25,16 +25,11 @@ class User(db.Model):
     # # RELATIONSHIPS END #
 
     def __init__(self,
-                 user_public_id, username, email, password, confirmed=False,
-                 admin=False, confirmed_at=None):
-        self.user_public_id = user_public_id
+                 username, email, password, admin):
         self.username = username
         self.email = email
-        self.password = password
-        self.registered_at = datetime.utcnow()
+        self.password = generate_password_hash(password, method='sha256')
         self.admin = admin
-        self.confirmed = confirmed
-        self.confirmed_at = confirmed_at
 
     def __repr__(self):
         return '<User {}>'.format(self.username)

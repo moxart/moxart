@@ -33,18 +33,11 @@ def signup_user():
     email = data.get('email', None)
     password = data.get('password', None)
 
-    if username is None or email is None or password is None:
+    if not username or not email or not password or \
+            not User.query.filter(or_(User.username == username, User.email == email)):
         return jsonify(status=400, msg="some arguments missing"), 400
 
-    if db.session.query(User).filter(or_(
-            User.username == username, User.email == email
-    )).first():
-        return jsonify(status=400, msg="the user already exists"), 400
-
-    hashed_password = generate_password_hash(password, method='sha256')
-
-    user = User(user_public_id=uuid.uuid4(), username=username, email=email,
-                password=hashed_password, admin=False)
+    user = User(username=username, email=email, password=password, admin=False)
 
     db.session.add(user)
     db.session.commit()
@@ -69,7 +62,7 @@ def login_user():
     user = User.query.filter_by(username=username).first()
 
     if not username or not password or not user or not check_password_hash(user.password, password):
-        return jsonify(status=400, msg="user authentication required"), 400
+        return jsonify(status=400, msg="user authentication invalid"), 400
 
     access_token = create_access_token(identity=username, expires_delta=False)
     refresh_token = create_refresh_token(identity=username)

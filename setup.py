@@ -30,10 +30,8 @@ def init_admin():
     ).scalar() is None:
         admin = User(
             username=app.config['ADMIN_USERNAME'],
-            user_public_id=uuid.uuid4(),
             email=app.config['ADMIN_EMAIL'],
-            password=generate_password_hash(app.config['ADMIN_PASSWORD'], method='sha256'),
-            confirmed=True, confirmed_at=datetime.utcnow(),
+            password=app.config['ADMIN_PASSWORD'],
             admin=True
         )
         db.session.add(admin)
@@ -49,15 +47,12 @@ def init_admin():
 @click.option('-e', '--email', prompt='Email')
 @click.option('-p', '--password', prompt='Password', hide_input=True,
               confirmation_prompt=True, required=True)
-@click.option('--admin/--no-admin', default=False)
-@click.option('--confirmed/--un-confirmed', default=False)
-def init_user(username, email, password, admin, confirmed):
+def init_user(username, email, password):
     if db.session.query(User.username).filter_by(
             username=username
     ).scalar() is None:
         user = User(
-            username=username, user_public_id=uuid.uuid4(), email=email, password=password, admin=admin,
-            confirmed=True if confirmed else False, confirmed_at=datetime.utcnow() if confirmed else None
+            username=username, email=email, password=password, admin=False
         )
         db.session.add(user)
         db.session.commit()
