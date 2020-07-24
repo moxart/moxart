@@ -13,8 +13,6 @@ bp = Blueprint('post', __name__, url_prefix='/api')
 @bp.route('/post', methods=['POST'])
 @jwt_required
 def new_post():
-    current_user = get_jwt_identity()
-
     data = request.get_json()
 
     user_public_id = data.get('user_public_id', None)

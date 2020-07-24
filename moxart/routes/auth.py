@@ -51,6 +51,7 @@ def signup_user():
 
 @bp.route('/login', methods=['POST'])
 def login_user():
+    current_user = get_jwt_identity()
     if not request.is_json:
         return jsonify(msg="request is not json"), 400
 
@@ -68,7 +69,7 @@ def login_user():
     refresh_token = create_refresh_token(identity=username)
 
     return jsonify(status=200, msg="user has been authenticated successfully",
-                   access_token=access_token, refresh_token=refresh_token), 200
+                   access_token=access_token, refresh_token=refresh_token, current_user=current_user), 200
 
 
 @bp.route('/token/refresh', methods=['POST'])
