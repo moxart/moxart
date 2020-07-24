@@ -15,18 +15,23 @@ bp = Blueprint('user', __name__, url_prefix='/api')
 def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
+
         verify_jwt_in_request()
+
         claims = get_jwt_claims()
+
         if claims['roles'] != 'admin':
             return jsonify(msg="you don't have permission to access this endpoint"), 403
         else:
             return fn(*args, **kwargs)
+
     return wrapper
 
 
 @jwt.user_claims_loader
 def add_claims_to_access_token(identity):
     user = User.query.filter_by(username=identity).first()
+
     if user.admin == 1:
         return {'roles': 'admin'}
     else:
@@ -51,21 +56,15 @@ def get_users():
 def get_user(public_id):
     current_user = get_jwt_identity()
 
-    user_by_public_id = User.query.filter_by(public_id=public_id).first()
+    user = User.query.filter_by(public_id=public_id).first()
 
-    if user_by_public_id is None:
-        return jsonify({
-            "status": "not found",
-            "msg": "user not found"
-        })
+    if user is None:
+        return jsonify(status=404, msg="user not found")
 
     schema = UserSchema()
-    result = schema.dump(user_by_public_id)
-    return jsonify({
-        "status": "success",
-        "logged_in_as": current_user,
-        "data": result
-    }), 200
+    result = schema.dump(user)
+
+    return jsonify(status=200, logged_in_as=current_user, data=result), 200
 
 
 @bp.route('/user/<public_id>', methods=['PUT'])
@@ -81,44 +80,32 @@ def edit_user(public_id):
 
     hashed_password = generate_password_hash(password, method='sha256')
 
-    user_by_public_id = User.query.filter_by(public_id=public_id).first()
+    user = User.query.filter_by(public_id=public_id).first()
 
-    if user_by_public_id is None:
-        return jsonify({
-            "status": "not found",
-            "msg": "user not found"
-        })
+    if user is None:
+        return jsonify(status=404, msg="user not found"), 404
 
-    user_by_public_id.email = email
-    user_by_public_id.username = username
-    user_by_public_id.first_name = first_name
-    user_by_public_id.last_name = last_name
-    user_by_public_id.password = hashed_password
-    user_by_public_id.bio = bio
+    user.email = email
+    user.username = username
+    user.first_name = first_name
+    user.last_name = last_name
+    user.password = hashed_password
+    user.bio = bio
 
     db.session.commit()
 
-    return jsonify({
-        "status": "success",
-        "msg": "user has been successfully updated"
-    }), 200
+    return jsonify(status=200, msg="user has been successfully updated"), 200
 
 
 @bp.route('/user/<public_id>', methods=['DELETE'])
 @jwt_required
 def delete_user(public_id):
-    user_by_public_id = User.query.filter_by(public_id=public_id).first()
+    user = User.query.filter_by(user_public_id=public_id).first()
 
-    if user_by_public_id is None:
-        return jsonify({
-            "status": "not found",
-            "msg": "user not found"
-        })
+    if user is None:
+        return jsonify(status=404, msg="user not found"), 404
 
-    db.session.delete(user_by_public_id)
+    db.session.delete(user)
     db.session.commit()
 
-    return jsonify({
-        "status": "success",
-        "msg": "user has been successfully deleted"
-    }), 200
+    return jsonify(status=200, msg="user has been successfully deleted")
