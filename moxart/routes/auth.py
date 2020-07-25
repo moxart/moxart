@@ -1,8 +1,8 @@
 import uuid
 
+from datetime import datetime
 from flask import current_app, Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy import or_
 from flask_jwt_extended import (
     JWTManager, jwt_required, get_jwt_identity,
@@ -13,6 +13,7 @@ from flask_mail import Message
 
 from moxart import db, jwt, mail
 from moxart.models.user import User
+from moxart.utils.token import generate_confirmation_token, confirm_token
 
 bp = Blueprint('auth', __name__)
 
@@ -45,6 +46,13 @@ def signup_user():
     access_token = create_access_token(identity=username, expires_delta=False)
     refresh_token = create_refresh_token(identity=username)
 
+    token = generate_confirmation_token(user.email)
+    email = Message("Email Confirmation",
+                    sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                    recipients=[email])
+    email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
+    mail.send(email)
+
     return jsonify(status=201, message="the user has been successfully created",
                    access_token=access_token, refresh_token=refresh_token), 201
 
@@ -52,6 +60,7 @@ def signup_user():
 @bp.route('/login', methods=['POST'])
 def login_user():
     current_user = get_jwt_identity()
+
     if not request.is_json:
         return jsonify(msg="request is not json"), 400
 
@@ -80,6 +89,29 @@ def token_refresh():
 
     return jsonify(status=200, refresh=True, access_token=access_token,
                    msg="the refresh token has been successfully refreshed"), 200
+
+
+@bp.route('/confirm/<token>', methods=['GET'])
+def confirm_email(token):
+    try:
+        email = confirm_token(token)
+
+    except(ValueError, KeyError, TypeError) as error:
+        return jsonify(status=401, msg='the confirmation link is invalid or has expired', error=error), 401
+
+    user = User.query.filter_by(email=email).first()
+
+    if user.confirmed:
+        return jsonify(status=200, msg="account already confirmed. Please login"), 200
+
+    else:
+        user.confirmed = True
+        user.confirmed_at = datetime.utcnow()
+
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify(status=200, msg="you have confirmed your account"), 200
 
 
 @bp.route('/logout', methods=['DELETE'])
