@@ -148,6 +148,55 @@ def resend_confirmation():
     return jsonify(status=200, msg="account already confirmed. Please login"), 200
 
 
+@bp.route('/send/token', methods=['POST'])
+def send_reset_token():
+    data = request.get_json()
+
+    email = data.get('email', None)
+
+    user = User.query.filter_by(username=email).first()
+
+    if not email or user:
+        return jsonify(status=200, msg="If your email is valid, an email will be sent to you")
+
+    token = generate_confirmation_token(email)
+
+    email = Message("Reset Password",
+                    sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                    recipients=[email])
+    email.html = "<p>Reset Password: <a href='http://localhost:5000/reset/password/{}'>{}</a></p>".format(token, token)
+
+    mail.send(email)
+
+    return jsonify(status=200, msg="If your email is valid, an email will be sent to you")
+
+
+@bp.route('/reset/password', methods=['PUT'])
+def reset_password():
+    data = request.get_json()
+
+    token = data.get('token', None)
+    password = data.get('password', None)
+
+    hashed_password = generate_password_hash(password, method='sha256')
+
+    if not token or not password:
+        return jsonify(status=401, msg="some arguments missing"), 401
+
+    try:
+        email = confirm_token(token)
+    except(ValueError, KeyError, TypeError) as error:
+        return jsonify(status=401, msg="the token link is invalid or has expired", error=error), 401
+
+    user = User.query.filter_by(email=email).first()
+
+    user.password = hashed_password
+
+    db.session.commit()
+
+    return jsonify(status=200, msg="your password has been reset successfully")
+
+
 @bp.route('/logout', methods=['DELETE'])
 @jwt_required
 def logout_user():
