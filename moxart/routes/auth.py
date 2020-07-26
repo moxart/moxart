@@ -114,6 +114,19 @@ def confirm_email(token):
         return jsonify(status=200, msg="you have confirmed your account"), 200
 
 
+@bp.route('/unconfirmed')
+@jwt_required
+def unconfirmed():
+    current_user = get_jwt_identity()
+
+    user = User.query.filter_by(username=current_user).first()
+
+    if user and user.confirmed == 1:
+        return jsonify(status=200, msg="you are logged in")
+
+    return jsonify(status=401, msg="please confirm your account")
+
+
 @bp.route('/logout', methods=['DELETE'])
 @jwt_required
 def logout_user():
