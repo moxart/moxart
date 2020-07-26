@@ -122,9 +122,30 @@ def unconfirmed():
     user = User.query.filter_by(username=current_user).first()
 
     if user and user.confirmed == 1:
-        return jsonify(status=200, msg="you are logged in")
+        return jsonify(status=200, msg="you are logged in"), 200
 
-    return jsonify(status=401, msg="please confirm your account")
+    return jsonify(status=401, msg="please confirm your account"), 401
+
+
+@bp.route('/resend')
+@jwt_required
+def resend_confirmation():
+    current_user = get_jwt_identity()
+
+    user = User.query.filter_by(username=current_user).first()
+
+    if user and user.confirmed is not True:
+        token = generate_confirmation_token(user.email)
+
+        email = Message("Email Confirmation",
+                        sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                        recipients=[user.email])
+        email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
+        mail.send(email)
+
+        return jsonify(status=200, msg="a new confirmation email has been sent"), 200
+
+    return jsonify(status=200, msg="account already confirmed. Please login"), 200
 
 
 @bp.route('/logout', methods=['DELETE'])

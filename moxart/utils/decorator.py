@@ -31,7 +31,7 @@ def is_confirmed(fn):
         user = User.query.filter_by(username=current_user).first()
 
         if user and user.confirmed is False:
-            return jsonify(status=401, msg="please confirm your account")
+            return jsonify(status=401, msg="please confirm your account"), 401
 
         return fn(*args, **kwargs)
 
