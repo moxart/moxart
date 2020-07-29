@@ -17,7 +17,7 @@ class Post(db.Model):
     title = db.Column(db.Text)
     title_slug = db.Column(db.String(100), unique=True, nullable=False)
     content = db.Column(db.Text)
-    comment_count = db.Column(db.Integer)
+    comment_count = db.Column(db.Integer, default=0)
     published_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
     updated_at = db.Column(db.DateTime)
 
@@ -26,7 +26,7 @@ class Post(db.Model):
     # `category_public_id` #
     # END FOREIGN KEYS #
 
-    def __init__(self, user_public_id, category_public_id, title, content, comment_count):
+    def __init__(self, user_public_id, category_public_id, title, title_slug, content):
         self.id = uuid.uuid4()
         self.user_public_id = user_public_id
         self.post_public_id = uuid.uuid4()
@@ -34,7 +34,6 @@ class Post(db.Model):
         self.title = title,
         self.title_slug = slugify(title)
         self.content = content
-        self.comment_count = comment_count
 
     def __repr__(self):
         return '<Post {}>'.format(self.post_public_id)

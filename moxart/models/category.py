@@ -20,7 +20,7 @@ class Category(db.Model):
     post = db.relationship('Post', backref='post', uselist=False)
     #  RELATIONSHIPS END #
 
-    def __init__(self, category_name):
+    def __init__(self, category_name, category_name_slug):
         self.id = uuid.uuid4()
         self.category_public_id = uuid.uuid4()
         self.category_name = category_name

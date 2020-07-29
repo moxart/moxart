@@ -2,9 +2,12 @@ import click
 import uuid
 from datetime import datetime
 from werkzeug.security import generate_password_hash
+from slugify import slugify
 
 from moxart import create_app, db
 from moxart.models.user import User
+from moxart.models.post import Post
+from moxart.models.category import Category
 
 app = create_app()
 app.app_context().push()
@@ -61,6 +64,36 @@ def init_user(username, email, password):
         click.echo('[ The {} has already been taken ]'.format(username))
 
 
+# Initializing uncategorized category
+@click.command()
+def init_category():
+    category = Category(category_name="Uncategorized", category_name_slug=slugify("Uncategorized"))
+
+    db.session.add(category)
+    db.session.commit()
+
+    click.echo('[ Initialized The Uncategorized Category ]')
+
+
+# Initializing Hello World Post
+@click.command()
+def init_post():
+    user = User.query.filter_by(username=app.config["ADMIN_USERNAME"]).first()
+    category = Category.query.filter_by(category_name_slug="uncategorized").first()
+
+    post = Post(
+        user_public_id=user.user_public_id, category_public_id=category.category_public_id,
+        title="Hello, World!",
+        title_slug="hello-world!",
+        content="<p>Pie sugar plum pie pudding. Caramels lemon drops jelly-o croissant tart.</p>"
+    )
+
+    db.session.add(post)
+    db.session.commit()
+
+    click.echo('[ Initialized The Hello World Post ]')
+
+
 # Drop User from Dashboard
 @click.command()
 @click.option('-u', '--username', prompt='Username', required=True)
@@ -82,6 +115,8 @@ def drop_user(username):
 cli.add_command(init_db)
 cli.add_command(init_admin)
 cli.add_command(init_user)
+cli.add_command(init_category)
+cli.add_command(init_post)
 cli.add_command(drop_user)
 
 if __name__ == '__main__':

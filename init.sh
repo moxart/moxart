@@ -28,3 +28,11 @@ echo "$MYSQL_DB_NAME database has been created successfully"
 # Initial Admin User
 $WHICH_PYTHON setup.py init-admin
 echo "Admin user has been created successfully"
+
+# Initial Uncategorized Category
+$WHICH_PYTHON setup.py init-category
+echo "Uncategorized category has been created successfully"
+
+# Initial Hello World Post
+$WHICH_PYTHON setup.py init-post
+echo "Hello World post has been published successfully"
