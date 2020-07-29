@@ -18,16 +18,37 @@ def new_category():
     category_name = data.get('category_name', None)
 
     if category_name is None:
-        return jsonify({
-            "msg": "some arguments missing"
-        }), 400
+        return jsonify(status=400, msg="some arguments missing")
 
     category = Category(category_name=category_name)
 
     db.session.add(category)
     db.session.commit()
 
-    return jsonify({
-        "status": "success",
-        "msg": "the category {} has been successfully created".format(category_name)
-    }), 201
+    return jsonify(status=201, msg="category has been successfully created"), 201
+
+
+@bp.route('/category/<uuid:category_public_id>')
+def get_post(category_public_id):
+    category = Category.query.filter_by(category_public_id=category_public_id).first()
+
+    if not category:
+        return jsonify(status=404, msg="post not found"), 404
+
+    schema = CategorySchema()
+    result = schema.dump(category)
+
+    return jsonify(status=200, data=result), 200
+
+
+@bp.route('/categories', methods=['GET'])
+def get_categories():
+    categories = Category.query.all()
+
+    schema = CategorySchema(many=True)
+    result = schema.dump(categories)
+
+    return jsonify(status=200, data=result), 200
+
+
+

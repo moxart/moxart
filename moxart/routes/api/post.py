@@ -21,9 +21,7 @@ def new_post():
     content = data.get('content', None)
 
     if user_public_id is None or category_public_id is None or title is None or content is None:
-        return jsonify({
-            "msg": "some arguments missing"
-        }), 400
+        return jsonify(status=400, msg="some arguments missing")
 
     post = Post(user_public_id=user_public_id, category_public_id=category_public_id,
                 title=title, content=content)
@@ -31,7 +29,27 @@ def new_post():
     db.session.add(post)
     db.session.commit()
 
-    return jsonify({
-        "status": "success",
-        "msg": "post has been successfully published"
-    }), 201
+    return jsonify(status=201, msg="post has been successfully published"), 201
+
+
+@bp.route('/post/<uuid:post_public_id>')
+def get_post(post_public_id):
+    post = Post.query.filter_by(post_public_id=post_public_id).first()
+
+    if not post:
+        return jsonify(status=404, msg="post not found"), 404
+
+    schema = PostSchema()
+    result = schema.dump(post)
+
+    return jsonify(status=200, data=result), 200
+
+
+@bp.route('/posts', methods=['GET'])
+def get_all_posts():
+    posts = Post.query.all()
+
+    schema = PostSchema(many=True)
+    result = schema.dump(posts)
+
+    return jsonify(status=200, data=result), 200

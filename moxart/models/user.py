@@ -15,13 +15,15 @@ class User(db.Model):
     email = db.Column(db.String(255), index=True, unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
-    registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_activity = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    registered_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
     confirmed = db.Column(db.Boolean, nullable=False, default=False)
     confirmed_at = db.Column(db.DateTime, default=None)
 
     # RELATIONSHIPS #
     post = db.relationship('Post', backref='user', lazy=True)
     profile = db.relationship('Profile', backref='profile', uselist=False)
+    comment = db.relationship('Comment', backref='user', lazy=True)
     # # RELATIONSHIPS END #
 
     def __init__(self,
@@ -41,6 +43,7 @@ class UserSchema(Schema):
     email = fields.Email()
     password = fields.Str()
     admin = fields.Boolean()
+    last_activity = fields.DateTime()
     registered_at = fields.DateTime()
     confirmed = fields.Boolean()
     confirmed_at = fields.DateTime()

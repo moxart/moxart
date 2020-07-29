@@ -3,6 +3,7 @@ import uuid
 from marshmallow import Schema, fields
 from moxart import db
 from datetime import datetime
+from slugify import slugify
 
 
 class Post(db.Model):
@@ -12,23 +13,28 @@ class Post(db.Model):
     post_public_id = db.Column(db.String(50), unique=True, nullable=False)
     user_public_id = db.Column(db.String(50), db.ForeignKey('user.user_public_id'))
     category_public_id = db.Column(db.String(50), db.ForeignKey('category.category_public_id'))
+    score = db.Column(db.Integer, nullable=False, default=0)
     title = db.Column(db.Text)
+    title_slug = db.Column(db.String(100), unique=True, nullable=False)
     content = db.Column(db.Text)
-    published_at = db.Column(db.DateTime, nullable=False)
+    comment_count = db.Column(db.Integer)
+    published_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    updated_at = db.Column(db.DateTime)
 
     # FOREIGN KEYS #
     # `user_public_id` #
     # `category_public_id` #
     # END FOREIGN KEYS #
 
-    def __init__(self, user_public_id, category_public_id, title, content):
+    def __init__(self, user_public_id, category_public_id, title, content, comment_count):
         self.id = uuid.uuid4()
         self.user_public_id = user_public_id
         self.post_public_id = uuid.uuid4()
         self.category_public_id = category_public_id
         self.title = title,
-        self.content = content,
-        self.published_at = datetime.utcnow()
+        self.title_slug = slugify(title)
+        self.content = content
+        self.comment_count = comment_count
 
     def __repr__(self):
         return '<Post {}>'.format(self.post_public_id)
@@ -37,5 +43,8 @@ class Post(db.Model):
 class PostSchema(Schema):
     post_public_id = fields.Str()
     title = fields.Str()
+    title_slug = fields.Str()
     content = fields.Str()
+    comment_count = fields.Str()
     published_at = fields.DateTime()
+    updated_at = fields.DateTime()

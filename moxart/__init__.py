@@ -54,5 +54,6 @@ def create_app(config=None):
         from .models import post
         from .models import profile
         from .models import category
+        from .models import comment
 
     return app

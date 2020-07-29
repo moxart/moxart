@@ -15,6 +15,7 @@ class Profile(db.Model):
     nickname = db.Column(db.String(50), nullable=True)
     url = db.Column(db.String(100), nullable=True)
     bio = db.Column(db.Text)
+    location = db.Column(db.String(50))
     display_name = db.Column(db.String(50), nullable=True)
     status = db.Column(db.Boolean)
 
@@ -23,13 +24,14 @@ class Profile(db.Model):
     # END FOREIGN KEYS #
 
     def __init__(self,
-                 first_name, last_name, nickname, url, bio,
+                 first_name, last_name, nickname, url, bio, location,
                  display_name, status=True):
         self.first_name = first_name
         self.last_name = last_name
         self.nickname = nickname
         self.url = url
         self.bio = bio
+        self.location = location
         self.display_name = display_name
         self.status = status
 
@@ -43,5 +45,6 @@ class ProfileSchema(Schema):
     nickname = fields.Str()
     url = fields.Str()
     bio = fields.Str()
+    location = fields.Str()
     display_name = fields.Str()
     status = fields.Boolean()
