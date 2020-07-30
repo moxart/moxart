@@ -13,7 +13,10 @@ from flask_mail import Message
 
 from moxart import db, jwt, mail
 from moxart.models.user import User
-from moxart.utils.token import generate_confirmation_token, confirm_token
+from moxart.utils.token import (
+    generate_confirmation_token, confirm_token,
+    encrypt_email_address, decrypt_email_address
+)
 
 bp = Blueprint('auth', __name__)
 
@@ -34,11 +37,13 @@ def signup_user():
     email = data.get('email', None)
     password = data.get('password', None)
 
+    encrypted_email = encrypt_email_address(email)
+
     if not username or not email or not password or \
-            not User.query.filter(or_(User.username == username, User.email == email)):
+            not User.query.filter(or_(User.username == username, User.email == decrypt_email_address(encrypted_email))):
         return jsonify(status=400, msg="some arguments missing"), 400
 
-    user = User(username=username, email=email, password=password, admin=False)
+    user = User(username=username, email=encrypted_email, password=password, admin=False)
 
     db.session.add(user)
     db.session.commit()

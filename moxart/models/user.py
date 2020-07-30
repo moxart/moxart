@@ -9,8 +9,8 @@ from datetime import datetime
 class User(db.Model):
     __tablename__ = 'user'
 
-    id = db.Column(db.String(50), primary_key=True, unique=True, nullable=False, default=uuid.uuid4())
-    user_public_id = db.Column(db.String(50), unique=True, nullable=False, default=uuid.uuid4())
+    id = db.Column(db.String(50), primary_key=True, unique=True, nullable=False)
+    user_public_id = db.Column(db.String(50), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, index=True, nullable=False)
     email = db.Column(db.String(255), index=True, unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
@@ -28,6 +28,8 @@ class User(db.Model):
 
     def __init__(self,
                  username, email, password, admin):
+        self.id = uuid.uuid4()
+        self.user_public_id = uuid.uuid4()
         self.username = username
         self.email = email
         self.password = generate_password_hash(password, method='sha256')

@@ -22,3 +22,15 @@ def confirm_token(token, expiration=3600):
         return jsonify(error=error)
 
     return email
+
+
+def encrypt_email_address(email):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+    return serializer.dumps(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
+
+
+def decrypt_email_address(email):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+    return serializer.loads(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
