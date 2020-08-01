@@ -7,7 +7,9 @@ from sqlalchemy import or_
 from flask_jwt_extended import (
     JWTManager, jwt_required, get_jwt_identity,
     create_access_token, create_refresh_token,
-    jwt_refresh_token_required, get_raw_jwt
+    jwt_refresh_token_required, get_raw_jwt,
+    set_access_cookies, set_refresh_cookies,
+    unset_jwt_cookies
 )
 from flask_mail import Message
 
@@ -59,8 +61,13 @@ def signup_user():
     email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
     mail.send(email)
 
-    return jsonify(status=201, message="the user has been successfully created",
-                   access_token=access_token, refresh_token=refresh_token, current_email=decrypted_email), 201
+    resp = jsonify(status=201, register=True, msg="user has been authenticated successfully",
+                   access_token=access_token, refresh_token=refresh_token, current_email=decrypted_email)
+
+    set_access_cookies(resp, access_token)
+    set_refresh_cookies(resp, refresh_token)
+
+    return resp, 201
 
 
 @bp.route('/login', methods=['POST'])
@@ -83,8 +90,13 @@ def login_user():
     access_token = create_access_token(identity=username, expires_delta=False)
     refresh_token = create_refresh_token(identity=username)
 
-    return jsonify(status=200, msg="user has been authenticated successfully",
-                   access_token=access_token, refresh_token=refresh_token, current_user=current_user), 200
+    resp = jsonify(status=200, login=True, msg="user has been authenticated successfully",
+                   access_token=access_token, refresh_token=refresh_token)
+
+    set_access_cookies(resp, access_token)
+    set_refresh_cookies(resp, refresh_token)
+
+    return resp, 200
 
 
 @bp.route('/token/refresh', methods=['POST'])

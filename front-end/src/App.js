@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path={`/`} component={HomePage} exact />
                 <Route path={`/about`} component={AboutPage} />
                 <Route path={`/contact`} component={ContactPage} />
+                <Route path={`/register`} component={RegisterPage} />
                 <Route path={`/login`} component={LoginPage} />
             </div>
         </div>

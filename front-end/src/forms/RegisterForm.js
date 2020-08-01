@@ -1,16 +1,13 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
-const LoginForm = () => {
-    const history = useHistory();
+const RegisterForm = () => {
+
     const { register, handleSubmit, errors } = useForm();
-    const [serverErrors, setServerErrors] = useState([]);
 
     const onSubmit = async (formData) => {
-        setServerErrors([]);
 
-        const  response = await fetch('/login', {
+        const  response = await fetch('/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -19,14 +16,14 @@ const LoginForm = () => {
         const data = await response.json();
 
         console.log(data);
-        history.push('/');
     }
 
     return (
         <div className="container">
             <div className="row">
                 <div className="col-md-5 mx-auto">
-                    <h1>Login</h1>
+                    <h1>Register</h1>
+
                     <form autoComplete={`off`} onSubmit={handleSubmit(onSubmit)}>
                         <div className="form-group">
                             <label htmlFor="username">Username</label>
@@ -44,6 +41,18 @@ const LoginForm = () => {
                             )}
                         </div>
                         <div className="form-group">
+                            <label htmlFor="email">Email</label>
+                            <input
+                                type="email"
+                                className="form-control"
+                                name="email"
+                                ref={register({ required: true })}
+                            />
+                            {errors.email && errors.email.type === "required" && (
+                                <p>email is required</p>
+                            )}
+                        </div>
+                        <div className="form-group">
                             <label htmlFor="password">Password</label>
                             <input type="password"
                                    className="form-control"
@@ -58,7 +67,7 @@ const LoginForm = () => {
                             )}
                         </div>
 
-                        <input type="submit" className={`btn btn-primary`} value={`Login`} />
+                        <input type="submit" className={`btn btn-primary`} value={`Register`} />
                     </form>
                 </div>
             </div>
@@ -66,4 +75,4 @@ const LoginForm = () => {
     )
 }
 
-export default LoginForm;
+export default RegisterForm;
