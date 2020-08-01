@@ -3,9 +3,14 @@ import uuid
 
 from datetime import datetime
 from werkzeug.security import generate_password_hash
+from moxart.utils.token import (
+    generate_confirmation_token, confirm_token,
+    decrypt_me, encrypt_me
+)
 from slugify import slugify
+from flask_mail import Message
 
-from moxart import create_app, db
+from moxart import create_app, db, mail
 from moxart.models.user import User
 from moxart.models.post import Post
 from moxart.models.category import Category
@@ -23,22 +28,28 @@ def cli():
 @click.command()
 def init_db():
     db.create_all()
-    click.echo('[ initialized database ]')
+    click.echo('initialized database')
 
 
 # Initializing an Admin User
 @click.command()
 def init_admin():
-    if db.session.query(User.username).filter_by(username=app.config['ADMIN_USERNAME']).scalar() is None:
-        admin = User(username=app.config['ADMIN_USERNAME'], email=app.config['ADMIN_EMAIL'],
-                     password=app.config['ADMIN_PASSWORD'], admin=True)
+    admin = User(username=app.config['ADMIN_USERNAME'],
+                 email=encrypt_me(app.config['ADMIN_EMAIL']),
+                 password=app.config['ADMIN_PASSWORD'],
+                 admin=True)
 
-        db.session.add(admin)
-        db.session.commit()
+    db.session.add(admin)
+    db.session.commit()
 
-        click.echo('initialized admin user')
-    else:
-        click.echo('user admin is already exists')
+    token = generate_confirmation_token(app.config['ADMIN_USERNAME'])
+    email = Message("Email Confirmation",
+                    sender=app.config['MAIL_DEFAULT_SENDER'],
+                    recipients=[app.config['ADMIN_USERNAME']])
+    email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
+    mail.send(email)
+
+    click.echo('initialized admin user')
 
 
 # add new admin user

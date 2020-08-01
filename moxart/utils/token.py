@@ -24,13 +24,13 @@ def confirm_token(token, expiration=3600):
     return email
 
 
-def encrypt_email_address(email):
+def encrypt_me(data):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
-    return serializer.dumps(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
+    return serializer.dumps(data, salt=current_app.config['SECURITY_PASSWORD_SALT'])
 
 
-def decrypt_email_address(email):
+def decrypt_me(data):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
-    return serializer.loads(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
+    return serializer.loads(data, salt=current_app.config['SECURITY_PASSWORD_SALT'])

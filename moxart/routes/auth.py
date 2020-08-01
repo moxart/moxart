@@ -15,7 +15,7 @@ from moxart import db, jwt, mail
 from moxart.models.user import User
 from moxart.utils.token import (
     generate_confirmation_token, confirm_token,
-    encrypt_email_address, decrypt_email_address
+    decrypt_me, encrypt_me
 )
 
 bp = Blueprint('auth', __name__)
@@ -37,10 +37,11 @@ def signup_user():
     email = data.get('email', None)
     password = data.get('password', None)
 
-    encrypted_email = encrypt_email_address(email)
+    encrypted_email = encrypt_me(email)
+    decrypted_email = decrypt_me(encrypted_email)
 
     if not username or not email or not password or \
-            not User.query.filter(or_(User.username == username, User.email == decrypt_email_address(encrypted_email))):
+            not User.query.filter(or_(User.username == username, User.email == decrypt_me(encrypted_email))):
         return jsonify(status=400, msg="some arguments missing"), 400
 
     user = User(username=username, email=encrypted_email, password=password, admin=False)
@@ -54,12 +55,12 @@ def signup_user():
     token = generate_confirmation_token(user.email)
     email = Message("Email Confirmation",
                     sender=current_app.config['MAIL_DEFAULT_SENDER'],
-                    recipients=[email])
+                    recipients=[decrypted_email])
     email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
     mail.send(email)
 
     return jsonify(status=201, message="the user has been successfully created",
-                   access_token=access_token, refresh_token=refresh_token), 201
+                   access_token=access_token, refresh_token=refresh_token, current_email=decrypted_email), 201
 
 
 @bp.route('/login', methods=['POST'])
