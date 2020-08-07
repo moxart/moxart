@@ -1,0 +1,39 @@
+{% extends 'layouts/email/base.html' %}
+
+{% block content %}
+    <center role="article" aria-roledescription="email" lang="en" style="width: 100%; background-color: #FFF8F0;">
+        <div style="max-width: 680px; margin: 0 auto;" class="email-container">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: auto;">
+                <tr>
+                    <td style="padding: 20px 0; background-color: #ffffff; border-radius: 6px; box-shadow: 0 0 10px rgba(0, 0, 0, .1);">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <tr>
+                                <td style="padding: 20px; font-size: 15px; line-height: 20px; color: #555555;">
+                                    <h1 style="margin: 0 0 10px; font-size: 25px; line-height: 30px; color: #333333; font-weight: normal;">Hello, Moxart!</h1>
+                                    <p style="margin: 0 0 10px;">Thanks for signing up. We're very excited to have you on board. To get started using Moxart, please confirm your account below.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 20px 20px;">
+                                    <table align="left" role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: auto;">
+                                        <tr>
+                                            <td class="button button-primary">
+                                                <a class="button button-primary" href="http://localhost:5000/confirm/{{ token }}" style="background: #00B890; font-size: 18px; line-height: 15px; text-decoration: none; padding: 20px 25px; color: #ffffff; display: block; border-radius: 4px;">Confirm Email</a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <footer style="padding: 0 0 0 20px; text-align: center; font-size: 13px; color: #9B9BAB; text-shadow: 0 1px 0 #fff;">
+                <div>
+                    <p>&copy; 2020 Moxart. All rights reserved.</p>
+                    <p>Powered by Moxart</p>
+                </div>
+            </footer>
+        </div>
+    </center>
+{% endblock %}

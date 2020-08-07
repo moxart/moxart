@@ -1,22 +1,30 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import {useHistory} from "react-router-dom";
 
 const RegisterForm = () => {
+    const history = useHistory();
 
     const { register, handleSubmit, errors } = useForm();
 
-    const onSubmit = async (formData) => {
-
-        const  response = await fetch('/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-
-        console.log(data);
+    const onSubmit = RegisterUser => {
+        return axios
+            .post('/register', {
+                username: RegisterUser.username,
+                email: RegisterUser.email,
+                password: RegisterUser.password
+            })
+            .then(res => {
+                localStorage.setItem('access_token', res.data.access_token);
+                // return res.data;
+                history.push('/login');
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
+
 
     return (
         <div className="container">

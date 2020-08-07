@@ -113,7 +113,7 @@ def token_refresh():
 def confirm_email(token):
     try:
         email = confirm_token(token)
-
+        
     except(ValueError, KeyError, TypeError) as error:
         return jsonify(status=401, msg='the confirmation link is invalid or has expired', error=error), 401
 
@@ -130,6 +130,7 @@ def confirm_email(token):
         db.session.commit()
 
         return jsonify(status=200, msg="you have confirmed your account"), 200
+
 
 
 @bp.route('/unconfirmed')

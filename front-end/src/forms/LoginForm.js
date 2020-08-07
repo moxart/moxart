@@ -1,25 +1,42 @@
 import React, { useState } from "react";
+import axios from 'axios';
 import { useHistory } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 const LoginForm = () => {
     const history = useHistory();
     const { register, handleSubmit, errors } = useForm();
-    const [serverErrors, setServerErrors] = useState([]);
+    // const [serverErrors, setServerErrors] = useState([]);
 
-    const onSubmit = async (formData) => {
-        setServerErrors([]);
+    // const onSubmit = async (formData) => {
+    //     setServerErrors([]);
+    //
+    //     const  response = await fetch('/login', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify(formData)
+    //     });
+    //
+    //     const data = await response.json();
+    //
+    //     console.log(data);
+    //     history.push('/');
+    // }
 
-        const  response = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-
-        console.log(data);
-        history.push('/');
+    const onSubmit = loginUser => {
+        return axios
+            .post('/login', {
+                username: loginUser.username,
+                password: loginUser.password
+            })
+            .then(res => {
+                localStorage.setItem('access_token', res.data.access_token);
+                // return res.data;
+                history.push('/');
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
 
     return (

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+    <title>Email Confirmation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+    <style>
+      html,
+      body {
+        margin: 0 auto !important;
+        padding: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+
+        font-family: "Lato", sans-serif;
+      }
+
+      * {
+        -ms-text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      table,
+      td {
+        mso-table-lspace: 0pt !important;
+        mso-table-rspace: 0pt !important;
+      }
+
+      table {
+        border-spacing: 0 !important;
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
+        margin: 0 auto !important;
+      }
+
+      img {
+        -ms-interpolation-mode: bicubic;
+      }
+
+      a {
+        text-decoration: none;
+      }
+    </style>
+
+    <style>
+      .button,
+      .button {
+        transition: all 100ms ease-in;
+      }
+      .button-primary:hover,
+      .button-primary:hover {
+        background: #008f70 !important;
+        border-color: #008f70 !important;
+        border-radius: 4px;
+      }
+
+      @media screen and (max-width: 480px) {
+        .stack-column,
+        .stack-column-center {
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          direction: ltr !important;
+        }
+
+        .stack-column-center {
+          text-align: center !important;
+        }
+
+        .center-on-narrow {
+          text-align: center !important;
+          display: block !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          float: none !important;
+        }
+        table.center-on-narrow {
+          display: inline-block !important;
+        }
+
+        .email-container p {
+          font-size: 17px !important;
+        }
+      }
+    </style>
+  </head>
+  <body width="100%" style="margin: 0; padding: 20px 0 !important; mso-line-height-rule: exactly; background-color: #FFF8F0;">
+    {% block content %}{% endblock %}
+  </body>
+</html>

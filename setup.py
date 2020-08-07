@@ -1,15 +1,16 @@
 import click
 import uuid
 
+from flask import request, render_template
 from datetime import datetime
 from werkzeug.security import generate_password_hash
+from slugify import slugify
+from flask_mail import Message
+
 from moxart.utils.token import (
     generate_confirmation_token, confirm_token,
     decrypt_me, encrypt_me
 )
-from slugify import slugify
-from flask_mail import Message
-
 from moxart import create_app, db, mail
 from moxart.models.user import User
 from moxart.models.post import Post
@@ -35,18 +36,18 @@ def init_db():
 @click.command()
 def init_admin():
     admin = User(username=app.config['ADMIN_USERNAME'],
-                 email=encrypt_me(app.config['ADMIN_EMAIL']),
+                 email=app.config['ADMIN_EMAIL'],
                  password=app.config['ADMIN_PASSWORD'],
                  admin=True)
 
     db.session.add(admin)
     db.session.commit()
 
-    token = generate_confirmation_token(app.config['ADMIN_USERNAME'])
+    token = generate_confirmation_token(app.config['ADMIN_EMAIL'])
     email = Message("Email Confirmation",
                     sender=app.config['MAIL_DEFAULT_SENDER'],
                     recipients=[app.config['ADMIN_USERNAME']])
-    email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
+    email.html = render_template('layouts/email/confirm.html', token=token)
     mail.send(email)
 
     click.echo('initialized admin user')
@@ -55,7 +56,7 @@ def init_admin():
 # add new admin user
 @click.command()
 @click.option('-a', '--username', prompt="Username", required=True)
-@click.option('-e', '--email', prompt='Email')
+@click.option('-e', '--email', prompt='Email', required=True)
 @click.option('-p', '--password', prompt='Password', hide_input=True, confirmation_prompt=True, required=True)
 def add_admin(username, email, password):
     if db.session.query(User.username).filter_by(username=username).scalar() is None:
@@ -72,7 +73,7 @@ def add_admin(username, email, password):
 # Initializing a User
 @click.command()
 @click.option('-u', '--username', prompt='Username', required=True)
-@click.option('-e', '--email', prompt='Email')
+@click.option('-e', '--email', prompt='Email', required=True)
 @click.option('-p', '--password', prompt='Password', hide_input=True, confirmation_prompt=True, required=True)
 def init_user(username, email, password):
     if db.session.query(User.username).filter_by(username=username).scalar() is None:
