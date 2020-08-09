@@ -20,20 +20,21 @@ class User(db.Model):
     confirmed = db.Column(db.Boolean, nullable=False, default=False)
     confirmed_at = db.Column(db.DateTime, default=None)
 
-    # RELATIONSHIPS #
+    # BLOCK RELATIONSHIPS #
     post = db.relationship('Post', backref='user', lazy=True)
     profile = db.relationship('Profile', backref='profile', uselist=False)
     comment = db.relationship('Comment', backref='user', lazy=True)
-    # # RELATIONSHIPS END #
+    # END BLOCK RELATIONSHIPS #
 
     def __init__(self,
-                 username, email, password, admin):
+                 username, email, password, admin, confirmed):
         self.id = uuid.uuid4()
         self.user_public_id = uuid.uuid4()
         self.username = username
         self.email = email
         self.password = generate_password_hash(password, method='sha256')
         self.admin = admin
+        self.confirmed = confirmed
 
     def __repr__(self):
         return '<User {}>'.format(self.username)

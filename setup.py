@@ -5,16 +5,23 @@ from flask import request, render_template
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 from slugify import slugify
-from flask_mail import Message
 
+
+from moxart import create_app, db, mail
+
+# BLOCK UTILS
 from moxart.utils.token import (
     generate_confirmation_token, confirm_token,
     decrypt_me, encrypt_me
 )
-from moxart import create_app, db, mail
+from moxart.utils.email import send_me
+# END BLOCK UTILS
+
+# BLOCK MODELS
 from moxart.models.user import User
 from moxart.models.post import Post
 from moxart.models.category import Category
+# End BLOCK MODELS
 
 app = create_app()
 app.app_context().push()
@@ -38,20 +45,16 @@ def init_admin():
     admin = User(username=app.config['ADMIN_USERNAME'],
                  email=app.config['ADMIN_EMAIL'],
                  password=app.config['ADMIN_PASSWORD'],
-                 admin=True)
+                 admin=True,
+                 confirmed=True)
 
     db.session.add(admin)
     db.session.commit()
 
-    token = generate_confirmation_token(app.config['ADMIN_EMAIL'])
-    email = Message("Email Confirmation",
-                    sender=app.config['MAIL_DEFAULT_SENDER'],
-                    recipients=[app.config['ADMIN_USERNAME']])
-    email.html = render_template('layouts/email/confirm.html', token=token)
-    mail.send(email)
-
-    click.echo('initialized admin user')
-
+    if send_me(app.config['ADMIN_EMAIL'], 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], admin.username):
+        click.echo('initialized admin user')
+    else:
+        click.echo('user admin has not been initialized successfully')
 
 # add new admin user
 @click.command()
@@ -60,12 +63,17 @@ def init_admin():
 @click.option('-p', '--password', prompt='Password', hide_input=True, confirmation_prompt=True, required=True)
 def add_admin(username, email, password):
     if db.session.query(User.username).filter_by(username=username).scalar() is None:
-        admin = User(username=username, email=email, password=password, admin=True)
+        admin = User(username=username, email=email,
+                     password=password, admin=True, confirmed=False)
 
         db.session.add(admin)
         db.session.commit()
 
-        click.echo('{} admin has been created successfully'.format(username))
+        if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], username):
+            click.echo(
+                '{} admin has been created successfully and a verification link has been sent to your email account.'.format(username))
+        else:
+            click.echo('user admin has not been initialized successfully')
     else:
         click.echo('{} has already been taken'.format(username))
 
@@ -77,12 +85,17 @@ def add_admin(username, email, password):
 @click.option('-p', '--password', prompt='Password', hide_input=True, confirmation_prompt=True, required=True)
 def init_user(username, email, password):
     if db.session.query(User.username).filter_by(username=username).scalar() is None:
-        user = User(username=username, email=email, password=password, admin=False)
+        user = User(username=username, email=email,
+                    password=password, admin=False, confirmed=False)
 
         db.session.add(user)
         db.session.commit()
 
-        click.echo('{} user has been created successfully'.format(username))
+        if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], username):
+            click.echo(
+                '{} admin has been created successfully and a verification link has been sent to your email account.'.format(username))
+        else:
+            click.echo('user has not been initialized successfully')
     else:
         click.echo('The {} has already been taken'.format(username))
 
@@ -90,7 +103,8 @@ def init_user(username, email, password):
 # Initializing uncategorized category
 @click.command()
 def init_category():
-    category = Category(category_name="Uncategorized", category_name_slug=slugify("Uncategorized"))
+    category = Category(category_name="Uncategorized",
+                        category_name_slug=slugify("Uncategorized"))
 
     db.session.add(category)
     db.session.commit()
@@ -120,11 +134,13 @@ def add_category(category):
 @click.option('-c', '--category', prompt="Category Name (slug)", required=True)
 def drop_category(category):
     if db.session.query(Category.category_name_slug).filter(Category.category_name_slug == category):
-        db.session.query(Category.category_name_slug).filter(Category.category_name_slug == category).delete()
+        db.session.query(Category.category_name_slug).filter(
+            Category.category_name_slug == category).delete()
 
         db.session.commit()
 
-        click.echo('{} category has been removed successfully from dashboard'.format(category))
+        click.echo(
+            '{} category has been removed successfully from dashboard'.format(category))
     else:
         click.echo('{} category does\'nt exist'.format(category))
 
@@ -133,7 +149,8 @@ def drop_category(category):
 @click.command()
 def init_post():
     user = User.query.filter_by(username=app.config["ADMIN_USERNAME"]).first()
-    category = Category.query.filter_by(category_name_slug="uncategorized").first()
+    category = Category.query.filter_by(
+        category_name_slug="uncategorized").first()
 
     post = Post(user_public_id=user.user_public_id, category_public_id=category.category_public_id,
                 title="Hello, World!",
@@ -164,7 +181,8 @@ def drop_post(post_public_id):
         db.session.delete(post)
         db.session.commit()
 
-        click.echo('{} post has been removed successfully from dashboard'.format(post.post_public_id))
+        click.echo('{} post has been removed successfully from dashboard'.format(
+            post.post_public_id))
     else:
         click.echo('{} post public id does\'nt exist'.format(post))
 
@@ -179,7 +197,8 @@ def drop_user(user_public_id):
         db.session.delete(user)
         db.session.commit()
 
-        click.echo('{} user has been removed successfully from dashboard'.format(user_public_id))
+        click.echo(
+            '{} user has been removed successfully from dashboard'.format(user_public_id))
     else:
         click.echo('you have not permission to execute this command')
 
