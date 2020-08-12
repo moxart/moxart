@@ -10,13 +10,13 @@ from moxart.utils.token import (
 )
 # END BLOCK UTILS
 
-def send_me(user_email, title, sender, username):
+
+def send_me(user_email, title, sender, tmpl, username):
     token = generate_confirmation_token(user_email)
 
     email = Message(title, sender=sender, recipients=[user_email])
-    email.html = render_template('layouts/email/confirm.html', token=token, username=username)
+    email.html = render_template(tmpl, token=token, username=username)
 
     mail.send(email)
 
     return True
-    

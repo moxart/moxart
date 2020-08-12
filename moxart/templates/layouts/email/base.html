@@ -11,86 +11,83 @@
     <title>Email Confirmation</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
     <style>
-      html,
-      body {
-        margin: 0 auto !important;
-        padding: 0 !important;
-        height: 100% !important;
-        width: 100% !important;
-
-        font-family: "Lato", sans-serif;
-      }
-
-      * {
-        -ms-text-size-adjust: 100%;
-        -webkit-text-size-adjust: 100%;
-      }
-
-      table,
-      td {
-        mso-table-lspace: 0pt !important;
-        mso-table-rspace: 0pt !important;
-      }
-
-      table {
-        border-spacing: 0 !important;
-        border-collapse: collapse !important;
-        table-layout: fixed !important;
-        margin: 0 auto !important;
-      }
-
-      img {
-        -ms-interpolation-mode: bicubic;
-      }
-
-      a {
-        text-decoration: none;
-      }
-    </style>
-
-    <style>
-      .button,
-      .button {
-        transition: all 100ms ease-in;
-      }
-      .button-primary:hover,
-      .button-primary:hover {
-        background: #008f70 !important;
-        border-color: #008f70 !important;
-        border-radius: 4px;
-      }
-
-      @media screen and (max-width: 480px) {
-        .stack-column,
-        .stack-column-center {
-          display: block !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          direction: ltr !important;
+        html {
+            font-family: 'Lato', 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
         }
 
-        .stack-column-center {
-          text-align: center !important;
+        body {
+            background-color: #FFF8F0;
         }
 
-        .center-on-narrow {
-          text-align: center !important;
-          display: block !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          float: none !important;
-        }
-        table.center-on-narrow {
-          display: inline-block !important;
+        img {
+            max-width: 100%;
+            display: block;
         }
 
-        .email-container p {
-          font-size: 17px !important;
+        * { box-sizing: border-box; }
+
+        p {
+
         }
-      }
+
+        a {
+            color: #00B890;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
+            text-decoration: none;
+        }
+
+        a:hover,
+        a:focus,
+        a:active {
+            color: #008f70
+        }
+
+        .container {
+            color: #555;
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+        }
+
+        .button-primary {
+            background: #00B890;
+            font-size: 18px;
+            line-height: 15px;
+            text-decoration: none;
+            padding: 20px 25px;
+            color: #ffffff;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .button-primary:hover,
+        .button-primary:hover {
+            background: #008f70 !important;
+            border-color: #008f70 !important;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+
+        footer {
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 600px;
+            text-align: center;
+            font-size: 13px;
+            color: #9B9BAB;
+            text-shadow: 0 1px 0 #fff;
+        }
     </style>
   </head>
-  <body width="100%" style="margin: 0; padding: 20px 0 !important; mso-line-height-rule: exactly; background-color: #FFF8F0;">
+  <body>
     {% block content %}{% endblock %}
   </body>
 </html>

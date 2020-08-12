@@ -1,7 +1,7 @@
 import uuid
 
 from datetime import datetime
-from flask import current_app, Blueprint, request, jsonify
+from flask import current_app, Blueprint, request, jsonify, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 from flask_jwt_extended import (
@@ -12,6 +12,8 @@ from flask_jwt_extended import (
     unset_jwt_cookies
 )
 from flask_mail import Message
+
+from moxart.utils.email import send_me
 
 from moxart import db, jwt, mail
 from moxart.models.user import User
@@ -132,7 +134,6 @@ def confirm_email(token):
         return jsonify(status=200, msg="you have confirmed your account"), 200
 
 
-
 @bp.route('/unconfirmed')
 @jwt_required
 def unconfirmed():
@@ -173,28 +174,19 @@ def send_reset_token():
 
     email = data.get('email', None)
 
-    user = User.query.filter_by(username=email).first()
+    user = User.query.filter_by(email=email).first()
 
-    if not email or user:
+    if send_me(email, "Please Reset Your Password", current_app.config['MAIL_DEFAULT_SENDER'],
+               "layouts/email/send-reset-link.html", user.username):
+
         return jsonify(status=200, msg="If your email is valid, an email will be sent to you")
-
-    token = generate_confirmation_token(email)
-
-    email = Message("Reset Password",
-                    sender=current_app.config['MAIL_DEFAULT_SENDER'],
-                    recipients=[email])
-    email.html = "<p>Reset Password: <a href='http://localhost:5000/reset/password/{}'>{}</a></p>".format(token, token)
-
-    mail.send(email)
-
-    return jsonify(status=200, msg="If your email is valid, an email will be sent to you")
+    return jsonify(status=401, msg="something is not right")
 
 
-@bp.route('/reset/password', methods=['PUT'])
-def reset_password():
+@bp.route('/reset/password/<token>', methods=['PUT'])
+def reset_password(token):
     data = request.get_json()
 
-    token = data.get('token', None)
     password = data.get('password', None)
 
     hashed_password = generate_password_hash(password, method='sha256')

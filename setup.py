@@ -6,7 +6,6 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 from slugify import slugify
 
-
 from moxart import create_app, db, mail
 
 # BLOCK UTILS
@@ -21,6 +20,7 @@ from moxart.utils.email import send_me
 from moxart.models.user import User
 from moxart.models.post import Post
 from moxart.models.category import Category
+
 # End BLOCK MODELS
 
 app = create_app()
@@ -51,10 +51,11 @@ def init_admin():
     db.session.add(admin)
     db.session.commit()
 
-    if send_me(app.config['ADMIN_EMAIL'], 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], admin.username):
+    if send_me(app.config['ADMIN_EMAIL'], 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], 'layouts/email/confirm.html', admin.username):
         click.echo('initialized admin user')
     else:
         click.echo('user admin has not been initialized successfully')
+
 
 # add new admin user
 @click.command()
@@ -69,9 +70,10 @@ def add_admin(username, email, password):
         db.session.add(admin)
         db.session.commit()
 
-        if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], username):
+        if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], 'layouts/email/confirm.html', username):
             click.echo(
-                '{} admin has been created successfully and a verification link has been sent to your email account.'.format(username))
+                '{} admin has been created successfully and a verification link has been sent to your email account.'.format(
+                    username))
         else:
             click.echo('user admin has not been initialized successfully')
     else:
@@ -91,9 +93,10 @@ def init_user(username, email, password):
         db.session.add(user)
         db.session.commit()
 
-        if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], username):
+        if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], 'layouts/email/confirm.html', username):
             click.echo(
-                '{} admin has been created successfully and a verification link has been sent to your email account.'.format(username))
+                '{} admin has been created successfully and a verification link has been sent to your email account.'.format(
+                    username))
         else:
             click.echo('user has not been initialized successfully')
     else:
