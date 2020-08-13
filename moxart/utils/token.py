@@ -8,7 +8,7 @@ def generate_confirmation_token(email):
     return serializer.dumps(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
 
 
-def confirm_token(token, expiration=3600):
+def confirm_token(token, expiration=1800):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
     try:
@@ -19,7 +19,7 @@ def confirm_token(token, expiration=3600):
         )
 
     except(ValueError, KeyError, TypeError) as error:
-        return jsonify(error=error)
+        return jsonify(error="token is not valid")
 
     return email
 

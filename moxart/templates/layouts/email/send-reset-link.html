@@ -5,9 +5,9 @@
         <h1>Hello, {{ username | capitalize }}!</h1>
         <p>We heard that you lost your Moxart password.
             Sorry about that! But don’t worry! You can use the following link to reset your password:</p>
-        <a class="button button-primary" href="http://localhost:5000/reset/password/{{ token }}">Reset Password</a>
+        <a class="button button-primary" href="http://localhost:3000/reset/password/{{ token }}">Reset Password</a>
         <p>Button not working? Paste the following link into your browser:
-            <a href="http://localhost:5000/reset/password/{{ token }}">
+            <a href="http://localhost:3000/reset/password/{{ token }}">
                 http://localhost:5000/reset/password/{{ token }}
             </a>
         </p>

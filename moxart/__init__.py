@@ -40,11 +40,12 @@ def create_app(config=None):
 
     with app.app_context():
         # Include Our API Routes
-        from .routes import auth
+        from .routes import auth, confirm
         from .routes.api import user, post, category
 
         # Register Blueprints
         app.register_blueprint(auth.bp)
+        app.register_blueprint(confirm.bp)
         app.register_blueprint(user.bp)
         app.register_blueprint(post.bp)
         app.register_blueprint(category.bp)

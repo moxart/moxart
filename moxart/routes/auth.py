@@ -16,7 +16,9 @@ from flask_mail import Message
 from moxart.utils.email import send_me
 
 from moxart import db, jwt, mail
+
 from moxart.models.user import User
+
 from moxart.utils.token import (
     generate_confirmation_token, confirm_token,
     decrypt_me, encrypt_me
@@ -41,14 +43,11 @@ def signup_user():
     email = data.get('email', None)
     password = data.get('password', None)
 
-    encrypted_email = encrypt_me(email)
-    decrypted_email = decrypt_me(encrypted_email)
-
     if not username or not email or not password or \
-            not User.query.filter(or_(User.username == username, User.email == decrypt_me(encrypted_email))):
+            not User.query.filter(or_(User.username == username, User.email == email)):
         return jsonify(status=400, msg="some arguments missing"), 400
 
-    user = User(username=username, email=encrypted_email, password=password, admin=False)
+    user = User(username=username, email=email, password=password, admin=False, confirmed=False)
 
     db.session.add(user)
     db.session.commit()
@@ -56,20 +55,18 @@ def signup_user():
     access_token = create_access_token(identity=username, expires_delta=False)
     refresh_token = create_refresh_token(identity=username)
 
-    token = generate_confirmation_token(user.email)
-    email = Message("Email Confirmation",
-                    sender=current_app.config['MAIL_DEFAULT_SENDER'],
-                    recipients=[decrypted_email])
-    email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
-    mail.send(email)
+    if send_me(email, "Email Confirmation", current_app.config['MAIL_DEFAULT_SENDER'], "layouts/email/confirm.html",
+               user.username):
 
-    resp = jsonify(status=201, register=True, msg="user has been authenticated successfully",
-                   access_token=access_token, refresh_token=refresh_token, current_email=decrypted_email)
+        resp = jsonify(status=201, register=True, msg="user has been authenticated successfully",
+                       access_token=access_token, refresh_token=refresh_token, current_email=email)
 
-    set_access_cookies(resp, access_token)
-    set_refresh_cookies(resp, refresh_token)
+        set_access_cookies(resp, access_token)
+        set_refresh_cookies(resp, refresh_token)
 
-    return resp, 201
+        return resp, 201
+
+    return jsonify(status=400, msg="something is wrong"), 400
 
 
 @bp.route('/login', methods=['POST'])
@@ -109,103 +106,6 @@ def token_refresh():
 
     return jsonify(status=200, refresh=True, access_token=access_token,
                    msg="the refresh token has been successfully refreshed"), 200
-
-
-@bp.route('/confirm/<token>', methods=['GET'])
-def confirm_email(token):
-    try:
-        email = confirm_token(token)
-        
-    except(ValueError, KeyError, TypeError) as error:
-        return jsonify(status=401, msg='the confirmation link is invalid or has expired', error=error), 401
-
-    user = User.query.filter_by(email=email).first()
-
-    if user.confirmed:
-        return jsonify(status=200, msg="account already confirmed. Please login"), 200
-
-    else:
-        user.confirmed = True
-        user.confirmed_at = datetime.utcnow()
-
-        db.session.add(user)
-        db.session.commit()
-
-        return jsonify(status=200, msg="you have confirmed your account"), 200
-
-
-@bp.route('/unconfirmed')
-@jwt_required
-def unconfirmed():
-    current_user = get_jwt_identity()
-
-    user = User.query.filter_by(username=current_user).first()
-
-    if user and user.confirmed == 1:
-        return jsonify(status=200, msg="you are logged in"), 200
-
-    return jsonify(status=401, msg="please confirm your account"), 401
-
-
-@bp.route('/resend')
-@jwt_required
-def resend_confirmation():
-    current_user = get_jwt_identity()
-
-    user = User.query.filter_by(username=current_user).first()
-
-    if user and user.confirmed is not True:
-        token = generate_confirmation_token(user.email)
-
-        email = Message("Email Confirmation",
-                        sender=current_app.config['MAIL_DEFAULT_SENDER'],
-                        recipients=[user.email])
-        email.html = "<a href='http://localhost:5000/confirm/{}'>{}</a>".format(token, token)
-        mail.send(email)
-
-        return jsonify(status=200, msg="a new confirmation email has been sent"), 200
-
-    return jsonify(status=200, msg="account already confirmed. Please login"), 200
-
-
-@bp.route('/send/token', methods=['POST'])
-def send_reset_token():
-    data = request.get_json()
-
-    email = data.get('email', None)
-
-    user = User.query.filter_by(email=email).first()
-
-    if send_me(email, "Please Reset Your Password", current_app.config['MAIL_DEFAULT_SENDER'],
-               "layouts/email/send-reset-link.html", user.username):
-
-        return jsonify(status=200, msg="If your email is valid, an email will be sent to you")
-    return jsonify(status=401, msg="something is not right")
-
-
-@bp.route('/reset/password/<token>', methods=['PUT'])
-def reset_password(token):
-    data = request.get_json()
-
-    password = data.get('password', None)
-
-    hashed_password = generate_password_hash(password, method='sha256')
-
-    if not token or not password:
-        return jsonify(status=401, msg="some arguments missing"), 401
-
-    try:
-        email = confirm_token(token)
-    except(ValueError, KeyError, TypeError) as error:
-        return jsonify(status=401, msg="the token link is invalid or has expired", error=error), 401
-
-    user = User.query.filter_by(email=email).first()
-
-    user.password = hashed_password
-
-    db.session.commit()
-
-    return jsonify(status=200, msg="your password has been reset successfully")
 
 
 @bp.route('/logout', methods=['DELETE'])

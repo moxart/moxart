@@ -6,22 +6,6 @@ import { useForm } from "react-hook-form";
 const LoginForm = () => {
     const history = useHistory();
     const { register, handleSubmit, errors } = useForm();
-    // const [serverErrors, setServerErrors] = useState([]);
-
-    // const onSubmit = async (formData) => {
-    //     setServerErrors([]);
-    //
-    //     const  response = await fetch('/login', {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify(formData)
-    //     });
-    //
-    //     const data = await response.json();
-    //
-    //     console.log(data);
-    //     history.push('/');
-    // }
 
     const onSubmit = loginUser => {
         return axios
@@ -30,9 +14,14 @@ const LoginForm = () => {
                 password: loginUser.password
             })
             .then(res => {
-                localStorage.setItem('access_token', res.data.access_token);
-                // return res.data;
-                history.push('/');
+                if (res.status === 200) {
+                    console.log("OK");
+                    localStorage.setItem('access_token', res.data.access_token);
+                    history.push('/');
+                } else {
+                    console.log("No");
+                }
+
             })
             .catch(err => {
                 console.log(err);
