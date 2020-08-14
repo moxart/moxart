@@ -6,6 +6,8 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 
+from moxart.utils.upload import init_client_upload_dir
+
 db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
@@ -32,25 +34,34 @@ def create_app(config=None):
     except OSError:
         pass
 
-    # Initialize Plugins
+    try:
+        os.makedirs(os.path.join(app.config['UPLOAD_BASE_PATH'], app.config['UPLOAD_CLIENT_PATH']))
+    except FileExistsError:
+        pass
+
+    # check and create if the directories are exists or not
+
+
+    # initialize plugins
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
 
     with app.app_context():
-        # Include Our API Routes
-        from .routes import auth, confirm
+        # include our api routes
+        from .routes import auth, confirm, upload
         from .routes.api import user, post, category
 
-        # Register Blueprints
+        # register blueprints
         app.register_blueprint(auth.bp)
         app.register_blueprint(confirm.bp)
+        app.register_blueprint(upload.bp)
         app.register_blueprint(user.bp)
         app.register_blueprint(post.bp)
         app.register_blueprint(category.bp)
 
-        # Include Our Models
+        # include our models
         from .models import user
         from .models import post
         from .models import profile

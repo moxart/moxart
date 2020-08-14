@@ -8,6 +8,7 @@ import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordForm from "./forms/ResetPasswordForm";
+import UploadFileForm from "./forms/UploadFileForm";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
                 <Route path={`/register`} component={RegisterPage} />
                 <Route path={`/login`} component={LoginPage} />
                 <Route path={`/reset/password/:token`} component={ResetPasswordForm} />
+                <Route path={`/upload`} component={UploadFileForm} />
             </div>
         </div>
     </Router>

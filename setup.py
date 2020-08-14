@@ -14,6 +14,7 @@ from moxart.utils.token import (
     decrypt_me, encrypt_me
 )
 from moxart.utils.email import send_me
+from moxart.utils.upload import init_client_upload_dir
 # END BLOCK UTILS
 
 # BLOCK MODELS
@@ -51,6 +52,11 @@ def init_admin():
     db.session.add(admin)
     db.session.commit()
 
+    if init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], app.config['UPLOAD_CLIENT_PATH'],
+                              app.config['UPLOAD_SUB_DIR'], admin.username):
+        click.echo(
+            '{} directory has been created successfully'.format(admin.username))
+
     if send_me(app.config['ADMIN_EMAIL'], 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], 'layouts/email/confirm.html', admin.username):
         click.echo('initialized admin user')
     else:
@@ -69,6 +75,11 @@ def add_admin(username, email, password):
 
         db.session.add(admin)
         db.session.commit()
+
+        if init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], app.config['UPLOAD_CLIENT_PATH'],
+                                  app.config['UPLOAD_SUB_DIR'], admin.username):
+            click.echo(
+                '{} directory has been created successfully'.format(admin.username))
 
         if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], 'layouts/email/confirm.html', username):
             click.echo(
@@ -92,6 +103,11 @@ def init_user(username, email, password):
 
         db.session.add(user)
         db.session.commit()
+
+        if init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], app.config['UPLOAD_CLIENT_PATH'],
+                                  app.config['UPLOAD_SUB_DIR'], user.username):
+            click.echo(
+                '{} directory has been created successfully'.format(user.username))
 
         if send_me(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'], 'layouts/email/confirm.html', username):
             click.echo(

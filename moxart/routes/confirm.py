@@ -7,12 +7,11 @@ from flask_jwt_extended import (
     jwt_required, get_jwt_identity
 )
 
-from moxart.utils.email import send_me
-
 from moxart import db
 
 from moxart.models.user import User
 
+from moxart.utils.email import send_me
 from moxart.utils.token import confirm_token
 
 bp = Blueprint('confirm', __name__)
