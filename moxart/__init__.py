@@ -39,9 +39,6 @@ def create_app(config=None):
     except FileExistsError:
         pass
 
-    # check and create if the directories are exists or not
-
-
     # initialize plugins
     db.init_app(app)
     jwt.init_app(app)
