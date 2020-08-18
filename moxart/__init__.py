@@ -35,7 +35,7 @@ def create_app(config=None):
         pass
 
     try:
-        os.makedirs(os.path.join(app.config['UPLOAD_BASE_PATH'], app.config['UPLOAD_CLIENT_PATH']))
+        os.makedirs(app.config['UPLOAD_BASE_PATH'])
     except FileExistsError:
         pass
 

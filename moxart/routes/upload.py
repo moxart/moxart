@@ -17,27 +17,20 @@ bp = Blueprint('upload', __name__)
 @jwt_required
 def upload_file():
     current_user = get_jwt_identity()
-    current_date = datetime.datetime.now().strftime('%Y/%m/')
-    current_img = request.files['file']
+    current_base = current_app.config['UPLOAD_BASE_PATH']
+    current_date = str(datetime.datetime.now().strftime('%Y/%m/'))
 
-    valid_extension = [
-        tuple(current_app.config['UPLOAD_VALID_IMAGE']),
-        tuple(current_app.config['UPLOAD_VALID_FILE'])
-    ]
+    for file in request.files.getlist('file'):
+        filename, ext = os.path.splitext(file.filename)
 
-    if not current_img.filename.lower().endswith((valid_extension[0] + valid_extension[1])):
-        return 'file is not valid type'
+        if ext.lower() not in tuple(current_app.config['UPLOAD_VALID_FILE']):
+            return jsonify(status=400, msg="some uploaded files has not valid type"), 400
 
-    target_path = os.path.join(os.path.join(
-        current_app.config['UPLOAD_BASE_PATH'],
-        current_app.config['UPLOAD_CLIENT_PATH']),
-        current_user + '/photos/' + str(current_date)
-    )
+        save_path = os.path.join(current_base + current_user, current_date)
 
-    if not os.path.exists(target_path):
-        os.makedirs(os.path.join(target_path))
+        if not os.path.exists(save_path):
+            os.makedirs(os.path.join(save_path))
 
-    f = request.files['file']
-    f.save(target_path + secure_filename(f.filename))
+        file.save(save_path + secure_filename(file.filename))
 
-    return 'file uploaded successfully'
+    return jsonify(status=200, msg="file has been uploaded successfully"), 200

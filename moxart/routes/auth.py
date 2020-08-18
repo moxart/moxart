@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import current_app, Blueprint, request, jsonify, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import (
     JWTManager, jwt_required, get_jwt_identity,
     create_access_token, create_refresh_token,
@@ -37,36 +38,41 @@ def check_if_token_in_blacklist(decrypted_token):
 
 @bp.route('/register', methods=['POST'])
 def signup_user():
-    data = request.get_json()
+    try:
+        data = request.get_json()
 
-    username = data.get('username', None)
-    email = data.get('email', None)
-    password = data.get('password', None)
+        username = data.get('username', None)
+        email = data.get('email', None)
+        password = data.get('password', None)
 
-    if not username or not email or not password or \
-            not User.query.filter(or_(User.username == username, User.email == email)):
-        return jsonify(status=400, msg="some arguments missing"), 400
+        if not username or not email or not password or \
+                not User.query.filter(or_(User.username == username, User.email == email)):
+            return jsonify(status=400, msg="some arguments missing"), 400
 
-    user = User(username=username, email=email, password=password, admin=False, confirmed=False)
+        user = User(username=username, email=email, password=password, admin=False, confirmed=False)
 
-    db.session.add(user)
-    db.session.commit()
+        db.session.add(user)
+        db.session.commit()
 
-    access_token = create_access_token(identity=username, expires_delta=False)
-    refresh_token = create_refresh_token(identity=username)
+        access_token = create_access_token(identity=username, expires_delta=False)
+        refresh_token = create_refresh_token(identity=username)
 
-    if send_me(email, "Email Confirmation", current_app.config['MAIL_DEFAULT_SENDER'], "layouts/email/confirm.html",
-               user.username):
+        if send_me(email, "Email Confirmation", current_app.config['MAIL_DEFAULT_SENDER'], "layouts/email/confirm.html",
+                   user.username):
 
-        resp = jsonify(status=201, register=True, msg="user has been authenticated successfully",
-                       access_token=access_token, refresh_token=refresh_token, current_email=email)
+            resp = jsonify(status=201, register=True, msg="user has been authenticated successfully",
+                           access_token=access_token, refresh_token=refresh_token, current_email=email)
 
-        set_access_cookies(resp, access_token)
-        set_refresh_cookies(resp, refresh_token)
+            set_access_cookies(resp, access_token)
+            set_refresh_cookies(resp, refresh_token)
 
-        return resp, 201
+            return resp, 201
+    except IntegrityError:
+        db.session.rollback()
 
-    return jsonify(status=400, msg="something is wrong"), 400
+        return jsonify(status=400, msg="this user already exists")
+    except AttributeError:
+        return jsonify(status=400, msg="something is wrong"), 400
 
 
 @bp.route('/login', methods=['POST'])
