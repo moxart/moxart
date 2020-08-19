@@ -12,18 +12,9 @@ from flask_jwt_extended import (
     set_access_cookies, set_refresh_cookies,
     unset_jwt_cookies
 )
-from flask_mail import Message
-
-from moxart.utils.email import send_me
-
-from moxart import db, jwt, mail
-
+from moxart import db, jwt
+from moxart.utils.email import send_verification_link
 from moxart.models.user import User
-
-from moxart.utils.token import (
-    generate_confirmation_token, confirm_token,
-    decrypt_me, encrypt_me
-)
 
 bp = Blueprint('auth', __name__)
 
@@ -33,23 +24,26 @@ blacklist = set()
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
+
     return jti in blacklist
 
 
 @bp.route('/register', methods=['POST'])
 def signup_user():
     try:
-        data = request.get_json()
+        username = request.json.get('username', None)
+        email = request.json.get('email', None)
+        password = request.json.get('password', None)
 
-        username = data.get('username', None)
-        email = data.get('email', None)
-        password = data.get('password', None)
-
-        if not username or not email or not password or \
-                not User.query.filter(or_(User.username == username, User.email == email)):
+        if not username or not email or not password:
             return jsonify(status=400, msg="some arguments missing"), 400
 
-        user = User(username=username, email=email, password=password, admin=False, confirmed=False)
+        hashed_password = generate_password_hash(password, method='sha256')
+
+        user = User(username=username, email=email, password=hashed_password, admin=False, confirmed=False)
+
+        if not user:
+            return jsonify(status=400, msg="user registration is not completed successfully"), 400
 
         db.session.add(user)
         db.session.commit()
@@ -57,51 +51,58 @@ def signup_user():
         access_token = create_access_token(identity=username, expires_delta=False)
         refresh_token = create_refresh_token(identity=username)
 
-        if send_me(email, "Email Confirmation", current_app.config['MAIL_DEFAULT_SENDER'], "layouts/email/confirm.html",
-                   user.username):
+        resp = jsonify(status=201, register=True, msg="user has been authenticated successfully",
+                       access_token=access_token, refresh_token=refresh_token, current_email=email)
 
-            resp = jsonify(status=201, register=True, msg="user has been authenticated successfully",
-                           access_token=access_token, refresh_token=refresh_token, current_email=email)
+        set_access_cookies(resp, access_token)
+        set_refresh_cookies(resp, refresh_token)
 
-            set_access_cookies(resp, access_token)
-            set_refresh_cookies(resp, refresh_token)
+        # sending a verification link to user's email
+        subject = 'Email Confirmation'
+        sender = current_app.config['MAIL_DEFAULT_SENDER']
+        template = 'layouts/email/confirm.html'
+        send_verification_link(email, subject, sender, template, username)
 
-            return resp, 201
+        return resp, 201
     except IntegrityError:
         db.session.rollback()
 
-        return jsonify(status=400, msg="this user already exists")
+        return jsonify(status=400, register=False,
+                       msg="username or email address already exists please choose another")
     except AttributeError:
-        return jsonify(status=400, msg="something is wrong"), 400
+        return jsonify(status=400, register=False,
+                       msg="request body should be json format"), 400
 
 
 @bp.route('/login', methods=['POST'])
 def login_user():
-    current_user = get_jwt_identity()
+    try:
+        username = request.json.get('username', None)
+        password = request.json.get('password', None)
 
-    if not request.is_json:
-        return jsonify(msg="request is not json"), 400
+        if not username or not password:
+            return jsonify(status=400, msg="some arguments missing"), 400
 
-    data = request.get_json()
+        user = User.query.filter_by(username=username).first()
 
-    username = data.get('username', None)
-    password = data.get('password', None)
+        if not user or not check_password_hash(user.password, password):
+            return jsonify(status=400, msg="user authentication invalid"), 400
 
-    user = User.query.filter_by(username=username).first()
+        access_token = create_access_token(identity=username, expires_delta=False)
+        refresh_token = create_refresh_token(identity=username)
 
-    if not username or not password or not user or not check_password_hash(user.password, password):
-        return jsonify(status=400, msg="user authentication invalid"), 400
+        resp = jsonify(status=200, login=True, msg="user has been authenticated successfully",
+                       access_token=access_token, refresh_token=refresh_token)
 
-    access_token = create_access_token(identity=username, expires_delta=False)
-    refresh_token = create_refresh_token(identity=username)
+        set_access_cookies(resp, access_token)
+        set_refresh_cookies(resp, refresh_token)
 
-    resp = jsonify(status=200, login=True, msg="user has been authenticated successfully",
-                   access_token=access_token, refresh_token=refresh_token)
+        return resp, 200
+    except IntegrityError:
+        return jsonify(status=400, login=False, msg="user authentication invalid"), 400
 
-    set_access_cookies(resp, access_token)
-    set_refresh_cookies(resp, refresh_token)
-
-    return resp, 200
+    except AttributeError:
+        return jsonify(status=400, login=False, msg="request body should be json format"), 400
 
 
 @bp.route('/token/refresh', methods=['POST'])

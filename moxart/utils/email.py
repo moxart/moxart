@@ -1,22 +1,23 @@
-from flask import render_template
+from flask import render_template, jsonify
 from flask_mail import Message
+
+from sqlalchemy.exc import IntegrityError
 
 from moxart import mail
 
-# BLOCK UTILS
 from moxart.utils.token import (
     generate_confirmation_token, confirm_token,
     decrypt_me, encrypt_me
 )
-# END BLOCK UTILS
 
 
-def send_me(user_email, title, sender, tmpl, username):
-    token = generate_confirmation_token(user_email)
+def send_verification_link(user_email, title, sender, tmpl, username):
+    try:
+        token = generate_confirmation_token(user_email)
 
-    email = Message(title, sender=sender, recipients=[user_email])
-    email.html = render_template(tmpl, token=token, username=username)
+        email = Message(title, sender=sender, recipients=[user_email])
+        email.html = render_template(tmpl, token=token, username=username)
 
-    mail.send(email)
-
-    return True
+        mail.send(email)
+    except IntegrityError:
+        return jsonify(status=400, msg="registration confirmation email could not be sent"), 400

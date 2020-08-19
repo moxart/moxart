@@ -32,7 +32,7 @@ class User(db.Model):
         self.user_public_id = uuid.uuid4()
         self.username = username
         self.email = email
-        self.password = generate_password_hash(password, method='sha256')
+        self.password = password
         self.admin = admin
         self.confirmed = confirmed
 

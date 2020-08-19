@@ -11,7 +11,7 @@ from moxart import db
 
 from moxart.models.user import User
 
-from moxart.utils.email import send_me
+from moxart.utils.email import send_verification_link
 from moxart.utils.token import confirm_token
 
 bp = Blueprint('confirm', __name__)
@@ -62,7 +62,7 @@ def resend_confirmation():
     if not user or user.confirmed is True:
         return jsonify(status=200, msg="account already confirmed. Please login"), 200
 
-    if send_me(user.email, "Email Confirmation", current_app.config['MAIL_DEFAULT_SENDER'],
+    if send_verification_link(user.email, "Email Confirmation", current_app.config['MAIL_DEFAULT_SENDER'],
                "layouts/email/confirm.html", user.username):
         return jsonify(status=200, msg="a new confirmation email has been sent"), 200
 
@@ -75,7 +75,7 @@ def send_reset_token():
 
     user = User.query.filter_by(email=email).first()
 
-    if send_me(email, "Please Reset Your Password", current_app.config['MAIL_DEFAULT_SENDER'],
+    if send_verification_link(email, "Please Reset Your Password", current_app.config['MAIL_DEFAULT_SENDER'],
                "layouts/email/send-reset-link.html", user.username):
         return jsonify(status=200, msg="If your email is valid, an email will be sent to you")
     return jsonify(status=401, msg="something is not right")
