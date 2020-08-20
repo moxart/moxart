@@ -8,6 +8,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError
 from slugify import slugify
+from terminaltables import AsciiTable
 
 from moxart import create_app, db
 
@@ -32,6 +33,76 @@ def cli():
 def init_db():
     db.create_all()
     click.echo('initialized database')
+
+
+# show all users
+@click.command()
+def show_users():
+    try:
+        users = User.query.all()
+        users_table = [
+            ['Username', 'Private ID', 'Public ID', 'Email', 'Is Admin',
+             'Last Activity', 'Registered At', 'Confirmed', 'Confirmed At'],
+        ]
+        table = AsciiTable(users_table)
+
+        for user in users:
+            click.echo(
+                users_table.append([
+                    user.username, user.id, user.user_public_id, user.email,
+                    user.admin, user.last_activity, user.registered_at,
+                    user.confirmed, user.confirmed_at])
+            )
+
+        print(table.table)
+
+    except IntegrityError:
+        click.echo('no user found')
+
+
+# show all users (alternative)
+@click.command()
+def show_users_alt():
+    try:
+        users = User.query.all()
+
+        for i, user in enumerate(users, start=1):
+            click.echo('*************************** No. {} ***************************'.format(i))
+            click.echo('id: {}'.format(user.id))
+            click.echo('public: {}'.format(user.user_public_id))
+            click.echo('username: {}'.format(user.username))
+            click.echo('email: {}'.format(user.email))
+            click.echo('password: {}'.format(user.password))
+            click.echo('admin: {}'.format(user.admin))
+            click.echo('last activity: {}'.format(user.last_activity))
+            click.echo('registered at: {}'.format(user.registered_at))
+            click.echo('is confirmed: {}'.format(user.confirmed))
+            click.echo('confirmed at: {}'.format(user.confirmed_at))
+
+    except IntegrityError:
+        click.echo('no user found')
+
+
+# show user's activity
+@click.command()
+def show_users_activity():
+    try:
+        users = User.query.order_by(User.last_activity).all()
+
+        users_table = [
+            ['Username', 'Last Activity'],
+        ]
+        table = AsciiTable(users_table)
+
+        for user in users:
+            click.echo(users_table.append([
+                user.username, user.last_activity
+            ]))
+
+        print(table.table)
+
+    except IntegrityError:
+        click.echo('no activity found')
 
 
 # Initializing an Admin User
@@ -240,6 +311,9 @@ def drop_user(user_public_id):
 
 cli.add_command(init_db)
 cli.add_command(init_admin)
+cli.add_command(show_users)
+cli.add_command(show_users_alt)
+cli.add_command(show_users_activity)
 cli.add_command(add_admin)
 cli.add_command(init_user)
 cli.add_command(init_directory)

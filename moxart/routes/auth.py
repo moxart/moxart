@@ -14,6 +14,7 @@ from flask_jwt_extended import (
 )
 from moxart import db, jwt
 from moxart.utils.email import send_verification_link
+from moxart.utils.upload import init_client_upload_dir
 from moxart.models.user import User
 
 bp = Blueprint('auth', __name__)
@@ -57,13 +58,12 @@ def signup_user():
         set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
 
-        # sending a verification link to user's email
-        subject = 'Email Confirmation'
-        sender = current_app.config['MAIL_DEFAULT_SENDER']
-        template = 'layouts/email/confirm.html'
-        send_verification_link(email, subject, sender, template, username)
+        init_client_upload_dir(current_app.config['UPLOAD_BASE_PATH'], username)
+        send_verification_link(email, 'Email Confirmation', current_app.config['MAIL_DEFAULT_SENDER'],
+                               'layouts/email/confirm.html', username)
 
         return resp, 201
+
     except IntegrityError:
         db.session.rollback()
 
