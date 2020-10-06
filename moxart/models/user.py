@@ -1,6 +1,5 @@
 import uuid
 
-from werkzeug.security import generate_password_hash
 from marshmallow import Schema, fields
 from moxart import db
 from datetime import datetime
@@ -20,11 +19,10 @@ class User(db.Model):
     confirmed = db.Column(db.Boolean, nullable=False, default=False)
     confirmed_at = db.Column(db.DateTime, default=None)
 
-    # BLOCK RELATIONSHIPS #
+    role = db.relationship('Role', cascade="all,delete", backref='user')
     post = db.relationship('Post', backref='user', lazy=True)
     profile = db.relationship('Profile', backref='profile', uselist=False)
-    comment = db.relationship('Comment', backref='user', lazy=True)
-    # END BLOCK RELATIONSHIPS #
+    comment = db.relationship('Comment', backref='parent', lazy=True)
 
     def __init__(self,
                  username, email, password, admin, confirmed):

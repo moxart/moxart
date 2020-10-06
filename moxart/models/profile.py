@@ -19,10 +19,6 @@ class Profile(db.Model):
     display_name = db.Column(db.String(50), nullable=True)
     status = db.Column(db.Boolean)
 
-    # FOREIGN KEYS #
-    # `user_public_id` #
-    # END FOREIGN KEYS #
-
     def __init__(self,
                  first_name, last_name, nickname, url, bio, location,
                  display_name, status=True):

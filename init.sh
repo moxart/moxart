@@ -22,13 +22,13 @@ fi
 WHICH_PYTHON=$(which python)
 
 # Create `$MYSQL_DB_NAME` database
-$WHICH_PYTHON setup.py init-db
+$WHICH_PYTHON manage.py init-db
 
 # Initial Admin User
-$WHICH_PYTHON setup.py init-admin
+$WHICH_PYTHON manage.py init-admin
 
 # Initial Uncategorized Category
-$WHICH_PYTHON setup.py init-category
+$WHICH_PYTHON manage.py init-category
 
 # Initial Hello World Post
-$WHICH_PYTHON setup.py init-post
+$WHICH_PYTHON manage.py init-post

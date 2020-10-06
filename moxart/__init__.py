@@ -60,6 +60,7 @@ def create_app(config=None):
 
         # include our models
         from .models import user
+        from .models import role
         from .models import post
         from .models import profile
         from .models import category

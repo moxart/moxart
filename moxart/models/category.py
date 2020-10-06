@@ -16,9 +16,7 @@ class Category(db.Model):
     category_name_slug = db.Column(db.String(100), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
 
-    #  RELATIONSHIPS #
     post = db.relationship('Post', backref='post', uselist=False)
-    #  RELATIONSHIPS END #
 
     def __init__(self, category_name, category_name_slug):
         self.id = uuid.uuid4()

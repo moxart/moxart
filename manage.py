@@ -16,11 +16,31 @@ from moxart.utils.email import send_verification_link
 from moxart.utils.upload import init_client_upload_dir
 
 from moxart.models.user import User
+from moxart.models.role import Role
 from moxart.models.post import Post
 from moxart.models.category import Category
 
 app = create_app()
 app.app_context().push()
+
+
+# helpers
+
+def set_admin(username, email, hashed_password, admin, confirmed):
+    admin = User(username=username, email=email, password=hashed_password, admin=admin, confirmed=confirmed)
+    db.session.add(admin)
+    db.session.commit()
+
+    role = Role(role_id=1, user_public_id=str(admin.user_public_id))
+    db.session.add(role)
+    db.session.commit()
+
+    init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], admin.username)
+
+    send_verification_link(app.config['ADMIN_EMAIL'], 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'],
+                           'layouts/email/confirm.html', admin.username)
+
+# end helpers
 
 
 @click.group()
@@ -39,67 +59,95 @@ def init_db():
 @click.command()
 def show_users():
     try:
-        users = User.query.all()
-        users_table = [
-            ['Username', 'Private ID', 'Public ID', 'Email', 'Is Admin',
-             'Last Activity', 'Registered At', 'Confirmed', 'Confirmed At'],
-        ]
-        table = AsciiTable(users_table)
+        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
 
-        for user in users:
-            click.echo(
-                users_table.append([
-                    user.username, user.id, user.user_public_id, user.email,
-                    user.admin, user.last_activity, user.registered_at,
-                    user.confirmed, user.confirmed_at])
-            )
+        if user and user.confirmed and user.admin:
+            users = User.query.order_by(User.registered_at)
 
-        print(table.table)
+            if users:
+                users_table = [
+                    ['Username', 'Private ID', 'Public ID', 'Email', 'Is Admin', 'Last Activity', 'Registered At',
+                     'Confirmed', 'Confirmed At'],
+                ]
+                table = AsciiTable(users_table)
 
-    except IntegrityError:
-        click.echo('no user found')
+                for user in users:
+                    click.echo(
+                        users_table.append([
+                            user.username, user.id, user.user_public_id, user.email,
+                            user.admin, user.last_activity, user.registered_at,
+                            user.confirmed, user.confirmed_at])
+                    )
+
+                print(table.table)
+
+            else:
+                click.echo('there are no users that match your search')
+
+        else:
+            click.echo('you dont have permission to execute this command')
+
+    except LookupError:
+        click.echo("unexpected error happened: check the config file")
 
 
 # show all users (alternative)
 @click.command()
 def show_users_alt():
     try:
-        users = User.query.all()
+        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
 
-        for i, user in enumerate(users, start=1):
-            click.echo('*************************** No. {} ***************************'.format(i))
-            click.echo('id: {}'.format(user.id))
-            click.echo('public: {}'.format(user.user_public_id))
-            click.echo('username: {}'.format(user.username))
-            click.echo('email: {}'.format(user.email))
-            click.echo('password: {}'.format(user.password))
-            click.echo('admin: {}'.format(user.admin))
-            click.echo('last activity: {}'.format(user.last_activity))
-            click.echo('registered at: {}'.format(user.registered_at))
-            click.echo('is confirmed: {}'.format(user.confirmed))
-            click.echo('confirmed at: {}'.format(user.confirmed_at))
+        if user and user.confirmed and user.admin:
+            users = User.query.order_by(User.registered_at)
 
-    except IntegrityError:
-        click.echo('no user found')
+            if users:
+                for i, user in enumerate(users, start=1):
+                    click.echo('*************************** No. {} ***************************'.format(i))
+                    click.echo('id: {}'.format(user.id))
+                    click.echo('public: {}'.format(user.user_public_id))
+                    click.echo('username: {}'.format(user.username))
+                    click.echo('email: {}'.format(user.email))
+                    click.echo('password: {}'.format(user.password))
+                    click.echo('admin: {}'.format(user.admin))
+                    click.echo('last activity: {}'.format(user.last_activity))
+                    click.echo('registered at: {}'.format(user.registered_at))
+                    click.echo('is confirmed: {}'.format(user.confirmed))
+                    click.echo('confirmed at: {}'.format(user.confirmed_at))
+
+            else:
+                click.echo('there are no users that match your search')
+
+        else:
+            click.echo('you dont have permission to execute this command')
+
+    except LookupError:
+        click.echo("unexpected error happened: check the config file")
 
 
 # show user's activity
 @click.command()
 def show_users_activity():
     try:
-        users = User.query.order_by(User.last_activity).all()
+        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
 
-        users_table = [
-            ['Username', 'Last Activity'],
-        ]
-        table = AsciiTable(users_table)
+        if user and user.confirmed and user.admin:
+            users = User.query.order_by(User.last_activity).all()
 
-        for user in users:
-            click.echo(users_table.append([
-                user.username, user.last_activity
-            ]))
+            if users:
+                users_table = [
+                    ['Username', 'Last Activity'],
+                ]
+                table = AsciiTable(users_table)
 
-        print(table.table)
+                for user in users:
+                    click.echo(users_table.append([
+                        user.username, user.last_activity
+                    ]))
+
+                print(table.table)
+
+            else:
+                click.echo('there are no users that match your search')
 
     except IntegrityError:
         click.echo('no activity found')
@@ -110,22 +158,11 @@ def show_users_activity():
 def init_admin():
     try:
         hashed_password = generate_password_hash(app.config['ADMIN_PASSWORD'], method='sha256')
-
-        admin = User(username=app.config['ADMIN_USERNAME'], email=app.config['ADMIN_EMAIL'],
-                     password=hashed_password, admin=True, confirmed=True)
-
-        db.session.add(admin)
-        db.session.commit()
-
-        init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], admin.username)
-
-        send_verification_link(app.config['ADMIN_EMAIL'], 'Email Confirmation',
-                               app.config['MAIL_DEFAULT_SENDER'],
-                               'layouts/email/confirm.html', admin.username)
+        set_admin(app.config['ADMIN_USERNAME'], app.config['ADMIN_EMAIL'], hashed_password, True, True)
 
     except IntegrityError:
         db.session.rollback()
-        click.echo('the init-admin command has been executed before')
+        click.echo("unexpected error happened: check the config file")
 
 
 # add new admin user
@@ -135,22 +172,16 @@ def init_admin():
 @click.option('-p', '--password', prompt='Password', hide_input=True, confirmation_prompt=True, required=True)
 def add_admin(username, email, password):
     try:
-        hashed_password = generate_password_hash(password, method='sha256')
+        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
 
-        admin = User(username=username, email=email, password=hashed_password, admin=True, confirmed=False)
+        if user and user.confirmed and user.admin:
+            hashed_password = generate_password_hash(password, method='sha256')
 
-        db.session.add(admin)
-        db.session.commit()
-
-        init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], admin.username)
-
-        send_verification_link(app.config['ADMIN_EMAIL'], 'Email Confirmation',
-                               app.config['MAIL_DEFAULT_SENDER'],
-                               'layouts/email/confirm.html', admin.username)
+            set_admin(username, email, hashed_password, True, True)
 
     except IntegrityError:
         db.session.rollback()
-        click.echo('this user already exists')
+        click.echo("unexpected error happened: check the config file")
 
 
 # Initializing a User
@@ -160,18 +191,29 @@ def add_admin(username, email, password):
 @click.option('-p', '--password', prompt='Password', hide_input=True, confirmation_prompt=True, required=True)
 def init_user(username, email, password):
     try:
-        hashed_password = generate_password_hash(password, method='sha256')
+        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
 
-        user = User(username=username, email=email, password=hashed_password, admin=False, confirmed=False)
+        if user and user.confirmed and user.admin:
 
-        db.session.add(user)
-        db.session.commit()
+            hashed_password = generate_password_hash(password, method='sha256')
 
-        init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], user.username)
+            user = User(username=username, email=email, password=hashed_password, admin=False, confirmed=False)
 
-        send_verification_link(app.config['ADMIN_EMAIL'], 'Email Confirmation',
-                               app.config['MAIL_DEFAULT_SENDER'],
-                               'layouts/email/confirm.html', user.username)
+            db.session.add(user)
+            db.session.commit()
+
+            role = Role(role_id=2, user_public_id=str(user.user_public_id))
+
+            db.session.add(role)
+            db.session.commit()
+
+            init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], user.username)
+
+            send_verification_link(app.config['ADMIN_EMAIL'], 'Email Confirmation',
+                                   app.config['MAIL_DEFAULT_SENDER'],
+                                   'layouts/email/confirm.html', user.username)
+        else:
+            click.echo('you dont have permission to execute this command')
 
     except IntegrityError:
         db.session.rollback()
@@ -183,13 +225,20 @@ def init_user(username, email, password):
 @click.option('-u', '--username', prompt='Username', required=True)
 def init_directory(username):
     try:
-        user = User.query.filter_by(username=username).first()
-        os.makedirs(os.path.join(app.config['UPLOAD_BASE_PATH'], user.username))
-        click.echo('the current directory is now created')
+        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
+
+        if user and user.confirmed and user.admin:
+            os.makedirs(os.path.join(app.config['UPLOAD_BASE_PATH'], user.username))
+            click.echo('the current directory is now created')
+
+        else:
+            click.echo('you dont have permission to execute this command')
+
     except FileExistsError:
         click.echo("current directory already exists")
+
     except AttributeError:
-        click.echo('you dont have permission to make a directory for this user')
+        click.echo('there is no user with this username!')
 
 
 # drop client directory
@@ -197,11 +246,20 @@ def init_directory(username):
 @click.option('-u', '--username', prompt='Username', required=True)
 def drop_directory(username):
     try:
-        user = User.query.filter_by(username=username).first()
-        shutil.rmtree(os.path.join(app.config['UPLOAD_BASE_PATH'], user.username))
-        click.echo('directory removed completely')
+        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
+
+        if user and user.confirmed and user.admin:
+
+            shutil.rmtree(os.path.join(app.config['UPLOAD_BASE_PATH'], user.username))
+
+            click.echo('directory removed completely')
+
+        else:
+            click.echo('you dont have permission to execute this command')
+
     except FileNotFoundError:
         click.echo('directory not found')
+
     except AttributeError:
         click.echo('username not found')
 
@@ -303,7 +361,7 @@ def drop_user(user_public_id):
 
             click.echo('{} user has been removed successfully from dashboard'.format(user_public_id))
         else:
-            click.echo('dont have permission to execute this command')
+            click.echo('you dont have permission to execute this command')
     except IntegrityError:
         db.session.rollback()
         click.echo('{} user has not removed successfully from database'.format(user_public_id))

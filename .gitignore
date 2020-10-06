@@ -7,11 +7,6 @@ venv
 ### Migrations ###
 migrations
 
-### Flask ###
-instance/*
-!instance/.gitignore
-.webassets-cache
-
 uploads
 
 ### Flask.Python Stack ###

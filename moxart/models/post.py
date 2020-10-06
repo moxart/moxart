@@ -21,11 +21,6 @@ class Post(db.Model):
     published_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
     updated_at = db.Column(db.DateTime)
 
-    # FOREIGN KEYS #
-    # `user_public_id` #
-    # `category_public_id` #
-    # END FOREIGN KEYS #
-
     def __init__(self, user_public_id, category_public_id, title, title_slug, content):
         self.id = uuid.uuid4()
         self.user_public_id = user_public_id
