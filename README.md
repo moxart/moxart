@@ -13,16 +13,16 @@ $ chmod -x init.sh
 
 ## :hurtrealbad: Hard Setup
 
-
-### Initializing MySQL Database
-
-`$ bash init.sh`
-
 ### Config File
 edit `config.py` in *instance* 
 * Default **ADMIN_USERNAME** is `moxart`
 * Default **ADMIN_PASSWORD** is `password`
 > SETUP EMAIL IS REQUIRED
+
+### Initializing MySQL Database
+
+`$ bash init.sh`
+
 
 ### Useful Commands
 
