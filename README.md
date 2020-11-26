@@ -1,10 +1,10 @@
-# :seedling: Moxart Flask :seedling:
+# :seedling: Moxart Panel :seedling:
 
 -  :warning: Under Construction
 - 🔭 I’m currently working on Flask
 
 ```
-$ cd moxart
+$ cd moxart-panel
 $ python3 -m venv venv
 $ source venv/bin/activate
 $ pip3 install -r requirements.txt
