@@ -21,8 +21,11 @@ ADMIN_EMAIL = 'your gmail address'
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 587
 MAIL_USERNAME = 'your gmail address'
-MAIL_PASSWORD = 'app password generated'
-MAIL_DEFAULT_SENDER = 'your gmail address'
+
+# For MAIL_PASSWORD Go to the settings for your Google Account in the application or device you are trying to set up.
+# Replace your password with the 16-character password shown above.
+MAIL_PASSWORD = 'app password'
+MAIL_DEFAULT_SENDER = 'sender gmail address'
 MAIL_USE_TLS = True
 MAIL_USE_SSL = False
 

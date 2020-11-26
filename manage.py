@@ -37,8 +37,9 @@ def set_admin(username, email, hashed_password, admin, confirmed):
 
     init_client_upload_dir(app.config['UPLOAD_BASE_PATH'], admin.username)
 
-    send_verification_link(app.config['ADMIN_EMAIL'], 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'],
+    send_verification_link(email, 'Email Confirmation', app.config['MAIL_DEFAULT_SENDER'],
                            'layouts/email/confirm.html', admin.username)
+
 
 # end helpers
 
@@ -158,7 +159,8 @@ def show_users_activity():
 def init_admin():
     try:
         hashed_password = generate_password_hash(app.config['ADMIN_PASSWORD'], method='sha256')
-        set_admin(app.config['ADMIN_USERNAME'], app.config['ADMIN_EMAIL'], hashed_password, True, True)
+
+        set_admin(app.config['ADMIN_USERNAME'], app.config['ADMIN_EMAIL'], hashed_password, True, False)
 
     except IntegrityError:
         db.session.rollback()
@@ -172,12 +174,9 @@ def init_admin():
 @click.option('-p', '--password', prompt='Password', hide_input=True, confirmation_prompt=True, required=True)
 def add_admin(username, email, password):
     try:
-        user = User.query.filter_by(username=app.config['ADMIN_USERNAME']).first()
+        hashed_password = generate_password_hash(password, method='sha256')
 
-        if user and user.confirmed and user.admin:
-            hashed_password = generate_password_hash(password, method='sha256')
-
-            set_admin(username, email, hashed_password, True, True)
+        set_admin(username, email, hashed_password, True, False)
 
     except IntegrityError:
         db.session.rollback()

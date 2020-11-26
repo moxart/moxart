@@ -19,7 +19,7 @@ class Post(db.Model):
     content = db.Column(db.Text)
     comment_count = db.Column(db.Integer, default=0)
     published_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    updated_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
 
     def __init__(self, user_public_id, category_public_id, title, title_slug, content):
         self.id = uuid.uuid4()

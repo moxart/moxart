@@ -47,10 +47,12 @@ def create_app(config=None):
 
     with app.app_context():
         # include our api routes
+        from .routes.dashboard import dashboard_user
         from .routes import auth, confirm, upload
         from .routes.api import user, post, category
 
         # register blueprints
+        app.register_blueprint(dashboard_user.bp)
         app.register_blueprint(auth.bp)
         app.register_blueprint(confirm.bp)
         app.register_blueprint(upload.bp)

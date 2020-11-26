@@ -1,9 +1,11 @@
 import React from 'react'
 
 const HomePage = () => {
+
+
     return (
         <React.Fragment>
-            <h1>Homepage</h1>
+            <h3>Homepage</h3>
         </React.Fragment>
     )
 };

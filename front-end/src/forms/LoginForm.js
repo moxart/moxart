@@ -15,9 +15,9 @@ const LoginForm = () => {
             })
             .then(res => {
                 if (res.status === 200) {
-                    console.log("OK");
                     localStorage.setItem('access_token', res.data.access_token);
-                    history.push('/');
+
+                    history.push('/dashboard/home');
                 } else {
                     console.log("No");
                 }

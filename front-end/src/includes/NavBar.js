@@ -1,38 +1,29 @@
 import React from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import {Link, withRouter} from 'react-router-dom';
+import {useHistory} from "react-router-dom";
 
-const NavBar = () => (
-    <React.Fragment>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-            <Link className="navbar-brand" to={`/`}>Navbar</Link>
-            <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span className="navbar-toggler-icon"/>
-            </button>
-            <div className="collapse navbar-collapse" id="navbarNav">
-                <ul className="navbar-nav">
-                    <li className="nav-item active">
-                        <Link className="nav-link" to={`/`}>Home <span className="sr-only">(current)</span></Link>
-                    </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to={`/about`}>About</Link>
-                    </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to={`/contact`}>Contact</Link>
-                    </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to={`/register`}>Register</Link>
-                    </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to={`/login`}>Login</Link>
-                    </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to={`/upload`}>Upload</Link>
+const NavBar = () => {
+    const history = useHistory();
+
+    const handleLogout = history => () => {
+        localStorage.removeItem("access_token");
+        history.push('/login');
+    }
+
+    return (
+        <React.Fragment>
+            <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+                <a className="navbar-brand col-sm-3 col-md-2 mr-0" href="/dashboard/home">MOXART</a>
+                <input className="form-control form-control-dark w-100" type="text" placeholder="Search"
+                       aria-label="Search"/>
+                <ul className="navbar-nav px-3">
+                    <li className="nav-item text-nowrap">
+                        <a className="nav-link" onClick={handleLogout(history)}>Sign out</a>
                     </li>
                 </ul>
-            </div>
-        </nav>
-    </React.Fragment>
-)
+            </nav>
+        </React.Fragment>
+    );
+}
 
 export default NavBar;

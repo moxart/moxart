@@ -33,7 +33,6 @@ def confirm_email(token):
     user.confirmed = True
     user.confirmed_at = datetime.utcnow()
 
-    db.session.add(user)
     db.session.commit()
 
     return jsonify(status=200, msg="you have confirmed your account"), 200

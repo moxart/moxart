@@ -2,6 +2,7 @@ import uuid
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from slugify import slugify
 
 from moxart import db
 from moxart.models.post import Post
@@ -24,7 +25,7 @@ def new_post():
         return jsonify(status=400, msg="some arguments missing")
 
     post = Post(user_public_id=user_public_id, category_public_id=category_public_id,
-                title=title, content=content)
+                title=title, title_slug=slugify(title), content=content)
 
     db.session.add(post)
     db.session.commit()
@@ -52,4 +53,17 @@ def get_all_posts():
     schema = PostSchema(many=True)
     result = schema.dump(posts)
 
-    return jsonify(status=200, data=result), 200
+    return jsonify(result), 200
+
+
+@bp.route('/post/<post_public_id>', methods=['DELETE'])
+def delete_post(post_public_id):
+    post = Post.query.filter_by(post_public_id=post_public_id).first()
+
+    if post is None:
+        return jsonify(status=404, msg="post not found"), 404
+
+    db.session.delete(post)
+    db.session.commit()
+
+    return jsonify(status=200, msg="user has been successfully deleted")

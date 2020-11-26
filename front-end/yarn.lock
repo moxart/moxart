@@ -1477,6 +1477,13 @@
   resolved "https://registry.yarnpkg.com/@testing-library/user-event/-/user-event-7.2.1.tgz#2ad4e844175a3738cb9e7064be5ea070b8863a1c"
   integrity sha512-oZ0Ib5I4Z2pUEcoo95cT1cr6slco9WY7yiPpG+RGNkj8YcYgJnM7pXmYmorNOReh8MIGcKSqXyeGjxnr8YiZbA==
 
+"@tinymce/tinymce-react@^3.7.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@tinymce/tinymce-react/-/tinymce-react-3.7.0.tgz#e93fba2e98b48a9c4f65248dd3ac114cb8ae18af"
+  integrity sha512-KDSQVL5ZhOIaHX09lhlzxUICOSP68OIDtwyBpexxpCW1Bu60wkJSLpAZ8whraxpzIdkHsn+ZlDEJr0e893oeXw==
+  dependencies:
+    prop-types "^15.6.2"
+
 "@types/aria-query@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@types/aria-query/-/aria-query-4.2.0.tgz#14264692a9d6e2fa4db3df5e56e94b5e25647ac0"

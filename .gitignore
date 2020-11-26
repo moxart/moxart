@@ -4,6 +4,9 @@
 ### Venv ###
 venv
 
+### Node ###
+node_modules
+
 ### Migrations ###
 migrations
 

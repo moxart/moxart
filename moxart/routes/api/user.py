@@ -36,7 +36,7 @@ def get_users():
     schema = UserSchema(many=True)
     result = schema.dump(users)
 
-    return jsonify(status=200, current_user=current_user, data=result), 200
+    return jsonify(result), 200
 
 
 @bp.route('/user/<public_id>', methods=['GET'])
